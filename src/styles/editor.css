@@ -1,0 +1,33 @@
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.editor-pane .cm-editor {
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.editor-pane .cm-scroller {
+  overflow: auto;
+  line-height: 1.6;
+}
+
+.editor-pane .cm-content {
+  padding: 16px 8px;
+}
+
+/* Light mode: use a slightly off-white background */
+[data-theme="light"] .editor-pane .cm-editor {
+  background: #f8f8f8;
+}
+
+[data-theme="light"] .editor-pane .cm-gutters {
+  background: #f0f0f0;
+  border-right-color: #e0e0e0;
+  color: #aaa;
+}

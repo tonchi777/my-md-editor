@@ -1,0 +1,30 @@
+{
+  "productName": "MD Editor",
+  "version": "0.1.0",
+  "identifier": "com.mymdeditor.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MD Editor",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 600,
+        "minHeight": 400
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": ["icons/icon.ico"]
+  }
+}

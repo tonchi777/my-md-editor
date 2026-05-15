@@ -1,212 +1,132 @@
-# Implementation Plan: Lightweight Cross-Platform Markdown Editor
+# Project Agent Context
 
-## Context
-
-Building a desktop markdown editor/viewer from scratch. The goal is a lightweight, fast, native-feeling app — not a bloated Electron clone. Tauri v2 keeps the binary under ~5MB while still letting us use the full React/TypeScript ecosystem for the UI.
-
-**v1 scope:** live split preview, file open/save, syntax highlighting in code blocks, dark/light theme with OS awareness.
+This file is the primary handoff document for AI agents working on this project.
+Read it at the start of every session. Update the session log and roadmap checkboxes before ending a session.
 
 ---
 
-## Stack
+## Current Status
 
-| Layer | Choice | Reason |
-|---|---|---|
-| Desktop runtime | Tauri v2 | ~5MB binary vs ~80MB Electron |
-| Frontend | React 19 + TypeScript + Vite | Modern, fast HMR |
-| Editor | CodeMirror 6 via `@uiw/react-codemirror` | Modular, tree-shakable, proper MD support |
-| Markdown parser | `marked` v18 | Synchronous (no async flicker), single package |
-| Syntax highlighting | `highlight.js` v11 | Synchronous, tree-shakable language imports |
-| Icons | `lucide-react` | Lightweight, consistent |
-| Sanitization | `dompurify` | Prevent self-XSS from malicious .md files |
+**The app is fully functional and building.** Core v1 features are complete.
+Frontend builds with Vite, Rust backend compiles with Cargo, CI/CD is wired up on GitHub Actions.
+The app is not yet distributed — no release tag has been cut.
 
 ---
 
-## Directory Structure
+## What's Built
 
-```
-my-md-editor/
-├── src/
-│   ├── main.tsx
-│   ├── App.tsx
-│   ├── components/
-│   │   ├── Toolbar.tsx         — Open/Save/New/theme-toggle/collapse buttons
-│   │   ├── Editor.tsx          — CodeMirror 6 wrapper
-│   │   ├── Preview.tsx         — dangerouslySetInnerHTML with DOMPurify'd HTML
-│   │   ├── SplitPane.tsx       — Pointer-event drag resizer (no library)
-│   │   └── StatusBar.tsx       — Filename, word count, dirty indicator
-│   ├── hooks/
-│   │   ├── useFileSystem.ts    — Tauri plugin-fs + plugin-dialog wrappers
-│   │   ├── useTheme.ts         — OS detection + manual toggle + localStorage
-│   │   └── useMarkdown.ts      — marked.parse() + DOMPurify, memoized
-│   ├── lib/
-│   │   ├── markdownRenderer.ts — marked instance + hljs renderer config
-│   │   └── codemirrorSetup.ts  — CM6 extension array
-│   ├── styles/
-│   │   ├── themes.css          — CSS custom properties, :root + [data-theme="dark"]
-│   │   ├── preview.css         — Prose typography
-│   │   ├── editor.css          — CM6 container sizing
-│   │   └── hljs-themes.css     — github-light / github-dark scoped by data-theme
-│   └── types/index.ts          — FileState, Theme interfaces
-└── src-tauri/
-    ├── Cargo.toml
-    ├── tauri.conf.json
-    ├── capabilities/
-    │   └── default.json        — CRITICAL: plugin permission declarations
-    └── src/
-        ├── main.rs
-        └── lib.rs              — Just plugin init, zero custom commands
-```
+- [x] Tauri v2 + React 18 + TypeScript + Vite scaffold
+- [x] Live split preview (CodeMirror 6 editor + marked v12 renderer)
+- [x] Syntax highlighting in preview (highlight.js, GitHub light/dark themes)
+- [x] Native file open / save / save-as / new (Tauri plugin-dialog + plugin-fs)
+- [x] Dark/light theme — OS detection, manual toggle, persisted in localStorage
+- [x] Resizable split pane (pointer capture drag, ratio persisted in localStorage)
+- [x] Collapse/restore editor and preview panels independently
+- [x] Keyboard shortcuts: Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+N, F1
+- [x] Dirty state tracking + unsaved-changes warning on close
+- [x] Status bar (filename, word count, char count)
+- [x] Markdown reference modal (F1 / ? button) — 8 sections of syntax cheat sheet
+- [x] GitHub Actions CI (ci.yml — builds on every push)
+- [x] GitHub Actions release workflow (release.yml — draft release on v* tags)
 
 ---
 
-## Key Dependencies
+## Roadmap
 
-### npm (production)
+Tick off items as they are completed. Add the session date in parentheses.
 
-```json
-{
-  "@tauri-apps/api": "^2.11.0",
-  "@tauri-apps/plugin-dialog": "^2.7.1",
-  "@tauri-apps/plugin-fs": "^2.5.1",
-  "@uiw/react-codemirror": "^4.25.9",
-  "@codemirror/lang-markdown": "^6.5.0",
-  "@codemirror/language-data": "^6.5.0",
-  "@codemirror/theme-one-dark": "^6.1.3",
-  "marked": "^18.0.3",
-  "highlight.js": "^11.11.1",
-  "dompurify": "^3.4.3",
-  "lucide-react": "^0.511.0",
-  "react": "^19.2.6",
-  "react-dom": "^19.2.6"
-}
-```
+### Tier 1 — Quick wins
 
-### Rust (`src-tauri/Cargo.toml`)
+- [ ] Recent files list (last 10 opened, shown in a dropdown from the toolbar)
+- [ ] Word wrap toggle (button in toolbar, persisted in localStorage)
+- [ ] Font size controls (+/− buttons for editor and preview independently)
+- [ ] Scroll sync (editor and preview scroll positions stay linked)
 
-```toml
-tauri = { version = "2", features = [] }
-tauri-plugin-fs = "2"
-tauri-plugin-dialog = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-```
+### Tier 2 — Medium effort
+
+- [ ] Auto-save (write to disk every 30s when dirty, indicator in status bar)
+- [ ] Export to HTML (save rendered preview as standalone .html file)
+- [ ] Distraction-free mode (F11 hides toolbar + status bar)
+- [ ] Custom preview CSS (user can supply a .css file to style the preview)
+
+### Tier 3 — Bigger features
+
+- [ ] Folder sidebar (open a directory, browse .md files in a tree panel)
+- [ ] Multiple tabs (open several files at once)
+- [ ] Find & Replace (in-editor, CodeMirror already has the engine)
+- [ ] Print / PDF export (target the preview pane via browser print)
 
 ---
 
-## Key Implementation Details
+## Architecture Quick Reference
 
-### Rust side (`lib.rs`) — intentionally minimal
+Key files an agent needs to know:
 
-```rust
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_dialog::init())
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-```
+| File | Role |
+|---|---|
+| `src/App.tsx` | Root component. All state, keyboard shortcuts, layout wiring. |
+| `src/components/Toolbar.tsx` | Top bar. Add new buttons here; add corresponding prop + handler in App.tsx. |
+| `src/components/SplitPane.tsx` | Drag-to-resize pane. `leftVisible`/`rightVisible` props control collapse. |
+| `src/components/HelpModal.tsx` | F1 reference modal. SECTIONS array drives the content. |
+| `src/hooks/useFileSystem.ts` | All Tauri file I/O. `openFile`, `saveFile`, `saveFileAs`. |
+| `src/hooks/useTheme.ts` | Theme state. Sets `document.documentElement.dataset.theme`. |
+| `src/hooks/useMarkdown.ts` | Renders markdown to sanitized HTML string. Memoized on content. |
+| `src/lib/markdownRenderer.ts` | Configures marked + highlight.js once at module load. |
+| `src/lib/codemirrorSetup.ts` | Returns CM6 extension array. Accepts `isDark` to swap themes. |
+| `src/styles/themes.css` | All CSS custom properties. Also holds toolbar, split-pane, modal, status-bar styles. |
+| `src/styles/preview.css` | Prose typography for the rendered HTML pane. |
+| `src/styles/hljs-themes.css` | Syntax highlight colors, scoped to `[data-theme]`. |
+| `src-tauri/src/lib.rs` | Rust entry. Only registers plugins — add new Tauri plugins here. |
+| `src-tauri/capabilities/default.json` | Tauri v2 permissions. Must be updated when adding new plugins. |
 
-All file I/O goes through the Tauri plugin bridge — no custom `#[tauri::command]` needed for v1.
+### Patterns to follow
 
-### Capabilities (`capabilities/default.json`) — Tauri v2 permission system
-
-```json
-{
-  "identifier": "default",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "dialog:allow-open",
-    "dialog:allow-save",
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file",
-    "fs:allow-exists",
-    "fs:scope-home-recursive"
-  ]
-}
-```
-
-> Note: `fs:scope-home-recursive` grants access to the user's home directory tree. Files outside this scope (e.g. network drives) will be denied in v1.
-
-### Theme system — pure CSS, no JS in components
-
-- `useTheme.ts` only sets `document.documentElement.dataset.theme = "light" | "dark"`
-- All components use `var(--color-*)` CSS custom properties
-- hljs code block colors scoped via `[data-theme]` attribute — no conditional CSS imports
-
-### marked v18 renderer
-
-> v18 changed the `renderer.code` signature from positional args to an object parameter.
-
-```typescript
-renderer.code = ({ text, lang }) => {
-  const language = hljs.getLanguage(lang || "") ? lang! : "plaintext";
-  const highlighted = hljs.highlight(text, { language }).value;
-  return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
-};
-```
-
-### SplitPane — pointer events, no library
-
-Drag divider updates `splitRatio` state (clamped 0.2–0.8), persisted in `localStorage`. Collapse via `flex: 0 0 0; overflow: hidden` on the hidden panel.
-
-### Keyboard shortcuts — wired in `App.tsx`
-
-- `Ctrl+S` → save
-- `Ctrl+O` → open
-- `Ctrl+N` → new
-- `window.onbeforeunload` guard when file is dirty
-
-### Release profile — keeps binary small
-
-```toml
-[profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-strip = true
-panic = "abort"
-```
+- **New toolbar button:** add to `Toolbar.tsx` props interface + JSX, wire handler in `App.tsx`.
+- **New modal:** follow `HelpModal.tsx` pattern — backdrop click + Escape key to close.
+- **New localStorage preference:** read in `useState` initializer, write in `useEffect` on change.
+- **New Tauri plugin:** add to `Cargo.toml`, register in `lib.rs`, declare permission in `capabilities/default.json`.
+- **Theme-aware styles:** use `var(--color-*)` everywhere, override with `[data-theme="dark"]` selector.
 
 ---
 
-## Implementation Phases
+## Key Decisions
 
-| # | Phase | Key outputs |
-|---|---|---|
-| 1 | **Scaffold** | `npm create tauri-app@latest`, verify window opens |
-| 2 | **Install deps** | All npm packages + Rust plugin crates |
-| 3 | **Rust + capabilities** | `lib.rs` plugin init + `capabilities/default.json` |
-| 4 | **Theme system** | `themes.css` + `useTheme.ts`, toggle works |
-| 5 | **Markdown pipeline** | `markdownRenderer.ts` + `useMarkdown.ts` + `hljs-themes.css` |
-| 6 | **Editor** | `codemirrorSetup.ts` + `Editor.tsx`, live preview wired |
-| 7 | **Layout** | `SplitPane.tsx` + styles, resize/collapse tested |
-| 8 | **File system** | `useFileSystem.ts` + `Toolbar.tsx`, open/save/dirty state |
-| 9 | **Status bar + polish** | `StatusBar.tsx`, keyboard shortcuts, `onbeforeunload` |
-| 10 | **Release build** | `npm run tauri build`, verify binary ≤ 10MB |
+These were made deliberately — don't change them without a reason.
+
+- **marked over remark/unified:** synchronous parse, single package, no async flicker in live preview.
+- **highlight.js over shiki:** synchronous, tree-shakable. Shiki requires async init which complicates the marked renderer hook.
+- **No basicSetup in CodeMirror:** `basicSetup={false}` gives full control over the extension list. Extensions live in `codemirrorSetup.ts`.
+- **CSS custom properties for theming:** no JS theme logic in components — only `document.documentElement.dataset.theme` changes. Everything else is CSS.
+- **Pointer capture for SplitPane drag:** `setPointerCapture` on the divider so drag works even when pointer leaves the element.
+- **DOMPurify on all rendered HTML:** even in a desktop app, malicious .md files can cause self-XSS.
+- **`fs:scope-home-recursive` capability:** broadest practical scope without being unrestricted. Files outside home dir are denied.
 
 ---
 
-## Verification Checklist
+## Environment Quirks
 
-- [ ] Open .md file via toolbar + `Ctrl+O`, content appears in both panes
-- [ ] Typing in editor updates preview in real time (~16ms)
-- [ ] Fenced code blocks render with syntax highlighting (JS, Python, Rust)
-- [ ] `Ctrl+S` saves to same file without dialog; Save As shows dialog
-- [ ] Dirty indicator appears on edit, clears on save
-- [ ] Close with unsaved changes → OS confirmation dialog
-- [ ] Theme toggle switches light/dark; code colors update too
-- [ ] OS `prefers-color-scheme` respected on first launch; persists in localStorage
-- [ ] Drag split divider; ratio persists on restart
-- [ ] Collapse/restore each pane independently
-- [ ] Release binary size ≤ 10MB
+Things that caused problems — don't repeat them.
+
+- **`os=win32` in `.npmrc`:** The Claude Code bash environment has `os=linux` in its global `~/.npmrc`, which prevents `@rollup/rollup-win32-x64-msvc` (the rollup native Windows binary) from installing. The project `.npmrc` overrides this with `os=win32`. CI workflows strip this line on non-Windows runners via `sed -i '/^os=/d' .npmrc`.
+- **Rust not in PowerShell PATH:** Rust installs to `%USERPROFILE%\.cargo\bin` but this may not be in the PATH of a fresh PowerShell session. Prepend it: `$env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"`.
+- **VS Build Tools 2019 (not 2022):** The installed version is 2019. Tauri v2 builds fine with it — don't assume 2022 is required.
+- **`tauri.conf.json` `bundle.icon`:** Must reference at least one icon or Tauri's Windows resource file generator errors during `cargo build`. Icon lives at `src-tauri/icons/icon.ico`.
+- **`ubuntu-22.04` in CI (not `ubuntu-latest`):** Use the pinned version. `ubuntu-latest` may shift and break webkit2gtk package names.
 
 ---
 
-## Known v1 Limitations
+## Session Log
 
-- Images with relative paths won't resolve (no `baseUrl` set)
-- Files outside the home directory may be denied by `fs:scope-home-recursive`
-- No scroll sync between editor and preview panes
+Most recent first. Add a brief entry at the end of each session.
+
+### 2026-05-16
+- Initialized project from scratch (Tauri v2 + React 18 + TypeScript)
+- Implemented all v1 features: editor, preview, file I/O, theme, split pane, status bar
+- Added Markdown reference modal (HelpModal, F1 shortcut)
+- Set up GitHub Actions CI (`ci.yml`) and release workflow (`release.yml`)
+- Pushed to GitHub: https://github.com/tonchi888/my-md-editor
+- Updated PLAN.md and README.md with roadmap and agent context
+
+---
+
+*Update this file at the end of every session: tick completed roadmap items, append to the session log.*

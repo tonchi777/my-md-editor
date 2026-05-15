@@ -41,11 +41,13 @@ Tick off items as they are completed. Add the session date in parentheses.
 - [ ] Word wrap toggle (button in toolbar, persisted in localStorage)
 - [ ] Font size controls (+/− buttons for editor and preview independently)
 - [ ] Scroll sync (editor and preview scroll positions stay linked)
+- [ ] Word count goal (set a target word count, show progress bar in status bar; basic count already exists in status bar, this extends it)
 
 ### Tier 2 — Medium effort
 
 - [ ] Auto-save (write to disk every 30s when dirty, indicator in status bar)
-- [ ] Export to HTML (save rendered preview as standalone .html file)
+- [ ] Export to HTML (save rendered preview as standalone .html file with inlined CSS)
+- [ ] Export to plain text (.txt — strip markdown syntax, useful for copy-paste into plain editors)
 - [ ] Distraction-free mode (F11 hides toolbar + status bar)
 - [ ] Custom preview CSS (user can supply a .css file to style the preview)
 
@@ -55,6 +57,7 @@ Tick off items as they are completed. Add the session date in parentheses.
 - [ ] Multiple tabs (open several files at once)
 - [ ] Find & Replace (in-editor, CodeMirror already has the engine)
 - [ ] Print / PDF export (target the preview pane via browser print)
+- [ ] Export to DOCX (requires the `docx` npm package to build the Word XML structure, or shell out to pandoc if installed)
 
 ---
 

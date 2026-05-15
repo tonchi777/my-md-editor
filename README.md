@@ -65,10 +65,12 @@ The release binary and installer land in `src-tauri/target/release/bundle/`.
 - [ ] Word wrap toggle
 - [ ] Font size controls (+/− for editor and preview)
 - [ ] Scroll sync between editor and preview
+- [ ] Word count goal (set a target, show progress in status bar)
 
 ### Tier 2 — Medium effort
 - [ ] Auto-save (every 30s when dirty)
-- [ ] Export to HTML
+- [ ] Export to HTML (standalone file with inlined CSS)
+- [ ] Export to plain text (.txt)
 - [ ] Distraction-free mode (F11)
 - [ ] Custom preview CSS
 
@@ -77,6 +79,7 @@ The release binary and installer land in `src-tauri/target/release/bundle/`.
 - [ ] Multiple tabs
 - [ ] Find & Replace
 - [ ] Print / PDF export
+- [ ] Export to DOCX (via `docx` npm package or pandoc)
 
 ## CI/CD
 

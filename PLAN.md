@@ -41,7 +41,6 @@ Tick off items as they are completed. Add the session date in parentheses.
 - [ ] Word wrap toggle (button in toolbar, persisted in localStorage)
 - [ ] Font size controls (+/− buttons for editor and preview independently)
 - [ ] Scroll sync (editor and preview scroll positions stay linked)
-- [ ] Word count goal (set a target word count, show progress bar in status bar; basic count already exists in status bar, this extends it)
 
 ### Tier 2 — Medium effort
 

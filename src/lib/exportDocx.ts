@@ -5,6 +5,8 @@ import {
 
 interface InlineProps { bold?: boolean; italics?: boolean; code?: boolean }
 
+const PARA_SPACING = { after: 160 };
+
 function getInlineRuns(node: Node, props: InlineProps = {}): TextRun[] {
   const runs: TextRun[] = [];
   for (const child of node.childNodes) {
@@ -22,6 +24,10 @@ function getInlineRuns(node: Node, props: InlineProps = {}): TextRun[] {
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       const el = child as Element;
       const tag = el.tagName;
+      if (tag === "BR") {
+        runs.push(new TextRun({ break: 1 }));
+        continue;
+      }
       const p: InlineProps = { ...props };
       if (tag === "STRONG" || tag === "B") p.bold = true;
       if (tag === "EM" || tag === "I") p.italics = true;
@@ -44,13 +50,13 @@ function convertElement(el: Element): Child[] {
   const tag = el.tagName;
 
   if (tag in HEADING_MAP) {
-    return [new Paragraph({ heading: HEADING_MAP[tag], children: getInlineRuns(el) })];
+    return [new Paragraph({ heading: HEADING_MAP[tag], children: getInlineRuns(el), spacing: PARA_SPACING })];
   }
   if (tag === "P") {
-    return [new Paragraph({ children: getInlineRuns(el) })];
+    return [new Paragraph({ children: getInlineRuns(el), spacing: PARA_SPACING })];
   }
   if (tag === "BLOCKQUOTE") {
-    return [new Paragraph({ children: getInlineRuns(el), indent: { left: 720 } })];
+    return [new Paragraph({ children: getInlineRuns(el), indent: { left: 720 }, spacing: PARA_SPACING })];
   }
   if (tag === "PRE") {
     return (el.textContent ?? "").split("\n").map(line =>
@@ -62,12 +68,12 @@ function convertElement(el: Element): Child[] {
   }
   if (tag === "UL") {
     return Array.from(el.querySelectorAll(":scope > li")).map(li =>
-      new Paragraph({ children: [new TextRun("• "), ...getInlineRuns(li)], indent: { left: 360 } })
+      new Paragraph({ children: [new TextRun("• "), ...getInlineRuns(li)], indent: { left: 360 }, spacing: PARA_SPACING })
     );
   }
   if (tag === "OL") {
     return Array.from(el.querySelectorAll(":scope > li")).map((li, i) =>
-      new Paragraph({ children: [new TextRun(`${i + 1}. `), ...getInlineRuns(li)], indent: { left: 360 } })
+      new Paragraph({ children: [new TextRun(`${i + 1}. `), ...getInlineRuns(li)], indent: { left: 360 }, spacing: PARA_SPACING })
     );
   }
   if (tag === "TABLE") {

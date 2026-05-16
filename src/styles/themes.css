@@ -352,7 +352,12 @@ body {
 @media print {
   .toolbar, .tab-bar, .status-bar, .sidebar,
   .editor-pane, .split-divider { display: none !important; }
-  .app, .app-body, .split-pane { display: block !important; height: auto !important; overflow: visible !important; }
+  html, body, #root,
+  .app, .app-body, .app-right, .split-pane {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
   .preview-pane { padding: 0; height: auto !important; overflow: visible !important; }
 }
 

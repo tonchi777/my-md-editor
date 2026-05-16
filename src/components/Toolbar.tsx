@@ -38,7 +38,6 @@ interface ToolbarProps {
   autoSave: boolean;
   fontSize: number;
   isDirty: boolean;
-  fileName: string | null;
   recentFiles: string[];
 }
 
@@ -50,7 +49,7 @@ export function Toolbar({
   onFind, onToggleAutoSave, onOpenCustomCss, onToggleSidebar,
   theme, editorVisible, previewVisible, sidebarVisible,
   wordWrap, scrollSync, autoSave, fontSize,
-  isDirty, fileName, recentFiles,
+  isDirty, recentFiles,
 }: ToolbarProps) {
   return (
     <header className="toolbar">
@@ -84,14 +83,6 @@ export function Toolbar({
         <button className="toolbar-btn" onClick={onFind} title="Find & Replace (Ctrl+F)">
           <Search size={16} />
         </button>
-      </div>
-
-      <div className="toolbar-center">
-        {fileName && (
-          <span className="toolbar-filename">
-            {isDirty ? "• " : ""}{fileName}
-          </span>
-        )}
       </div>
 
       <div className="toolbar-right">

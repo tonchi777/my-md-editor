@@ -21,9 +21,9 @@ Most Markdown editors are either web-only (no native file access) or Electron-ba
 - Export to HTML, plain text (.txt), DOCX, or PDF/print
 - Distraction-free mode (F11)
 - Custom preview CSS
-- Markdown reference modal (F1) — quick cheat sheet for syntax
-- About modal — app info and version
+- Help modal (F1) — keyboard shortcuts, Markdown reference, changelog, and About, all in one tabbed modal
 - Dirty state indicator and unsaved-changes warning on close
+- Toolbar wraps to a second row at narrow window widths — no buttons ever hidden
 
 ## Stack
 
@@ -91,9 +91,8 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 | `Ctrl+Tab` | Next tab |
 | `Ctrl+Shift+Tab` | Previous tab |
 | `Ctrl+F` | Find & Replace |
-| `F1` | Markdown reference |
+| `F1` | Help modal (Shortcuts / Markdown / Changelog / About) |
 | `F11` | Toggle distraction-free mode |
-| Info button | About Pasulong MD |
 
 ## Roadmap
 
@@ -121,8 +120,12 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 ### Tier 4 — Polish
 - [x] App name and branding (Pasulong MD)
 - [x] Custom icon
-- [x] About modal
+- [x] About tab inside Help modal
 - [x] File association (open `.md` files from Explorer/Finder)
+- [x] Sidebar spans full height beside the tab bar
+- [x] Sidebar deduplicates already-open files (switches to existing tab instead of reopening)
+- [x] Toolbar wraps to second row at narrow widths
+- [x] Changelog (CHANGELOG.md + `npm run version:bump` script)
 
 ## CI/CD
 
@@ -132,8 +135,12 @@ Two GitHub Actions workflows:
 
 To cut a release:
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+npm run version:bump patch   # or minor / major
+# fill in CHANGELOG.md
+git add -A && git commit -m "Release v0.1.1"
+git tag v0.1.1
+git push origin master
+git push origin v0.1.1
 ```
 
 The release workflow publishes a **draft** GitHub release named `Pasulong MD vX.Y.Z` with installers for Windows (`.msi`/`.exe`), macOS (`.dmg`, universal binary), and Linux (`.AppImage`/`.deb`/`.rpm`). Promote the draft to publish it.

@@ -19,7 +19,7 @@ import { generateHtmlExport } from "./lib/exportHtml";
 import { generateDocxExport } from "./lib/exportDocx";
 import type { Tab } from "./types";
 
-const WELCOME = `# Welcome to MD Editor
+const WELCOME = `# Welcome to Pasulong MD
 
 A lightweight desktop Markdown editor. Start writing — the preview updates as you type.
 
@@ -413,32 +413,33 @@ export default function App() {
         autoSave={autoSave}
         fontSize={fontSize}
         isDirty={isDirty}
-        fileName={fileName}
         recentFiles={recentFiles}
-      />
-      <TabBar
-        tabs={tabs}
-        activeTabId={activeId}
-        onSelectTab={handleSelectTab}
-        onCloseTab={handleCloseTab}
-        onNewTab={handleNewTab}
       />
       <div className="app-body">
         {sidebarVisible && <FolderSidebar onOpenFile={handleOpenFromSidebar} />}
-        <SplitPane
-          leftVisible={editorVisible}
-          rightVisible={previewVisible}
-          left={
-            <Editor
-              content={content}
-              isDark={theme === "dark"}
-              wordWrap={wordWrap}
-              onChange={setContent}
-              onEditorCreated={setEditorView}
-            />
-          }
-          right={<Preview ref={previewRef} html={html} />}
-        />
+        <div className="app-right">
+          <TabBar
+            tabs={tabs}
+            activeTabId={activeId}
+            onSelectTab={handleSelectTab}
+            onCloseTab={handleCloseTab}
+            onNewTab={handleNewTab}
+          />
+          <SplitPane
+            leftVisible={editorVisible}
+            rightVisible={previewVisible}
+            left={
+              <Editor
+                content={content}
+                isDark={theme === "dark"}
+                wordWrap={wordWrap}
+                onChange={setContent}
+                onEditorCreated={setEditorView}
+              />
+            }
+            right={<Preview ref={previewRef} html={html} />}
+          />
+        </div>
       </div>
       <StatusBar filePath={currentPath} content={content} isDirty={isDirty} autoSave={autoSave} />
       {helpTab && <HelpModal initialTab={helpTab} onClose={() => setHelpTab(null)} />}

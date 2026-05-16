@@ -57,13 +57,14 @@ body {
 /* Toolbar */
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   padding: 4px 8px;
   background: var(--color-toolbar-bg);
   border-bottom: 1px solid var(--color-border);
   gap: 4px;
   flex-shrink: 0;
-  height: 40px;
+  min-height: 40px;
 }
 
 .toolbar-left,
@@ -73,21 +74,8 @@ body {
   gap: 2px;
 }
 
-.toolbar-center {
-  flex: 1;
-  text-align: center;
-  overflow: hidden;
-}
-
-.toolbar-filename {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
-  display: inline-block;
+.toolbar-right {
+  margin-left: auto;
 }
 
 .toolbar-btn {
@@ -126,6 +114,14 @@ body {
 /* App body (sidebar + split pane) */
 .app-body {
   display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-right {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
   min-height: 0;

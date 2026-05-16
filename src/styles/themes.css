@@ -11,6 +11,7 @@
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", "Consolas", monospace;
   --font-prose: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-size-base: 14px;
 }
 
 [data-theme="dark"] {
@@ -120,6 +121,243 @@ body {
 .toolbar-btn.active {
   background: var(--color-accent);
   color: #fff;
+}
+
+/* App body (sidebar + split pane) */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Tab bar */
+.tab-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  flex-shrink: 0;
+  height: 32px;
+  scrollbar-width: none;
+}
+
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 10px;
+  border-right: 1px solid var(--color-border);
+  cursor: pointer;
+  min-width: 80px;
+  max-width: 180px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.tab:hover { background: var(--color-border); color: var(--color-text); }
+
+.tab-active {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-accent);
+}
+
+.tab-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.tab-close:hover { background: var(--color-border); color: var(--color-text); }
+
+.tab-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tab-new:hover { background: var(--color-border); color: var(--color-text); }
+
+/* Folder sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  height: 32px;
+}
+
+.sidebar-back { width: 24px; height: 24px; flex-shrink: 0; }
+
+.sidebar-dir-name {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-files {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.sidebar-empty {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 12px 10px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-item:hover { background: var(--color-border); }
+
+.sidebar-icon { flex-shrink: 0; color: var(--color-text-muted); }
+
+.sidebar-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* CodeMirror search panel */
+.cm-search {
+  background: var(--color-toolbar-bg) !important;
+  border-top: 1px solid var(--color-border) !important;
+  padding: 6px 60px 6px 8px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+}
+
+.cm-search button[aria-label="close"] {
+  position: absolute !important;
+  top: auto !important;
+  bottom: 6px !important;
+  right: 8px !important;
+  font-size: 0 !important;
+  background: var(--color-bg-secondary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 2px 8px !important;
+  cursor: pointer !important;
+}
+
+.cm-search button[aria-label="close"]::after {
+  content: "Close";
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.cm-search input {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 2px 6px !important;
+  font-size: 12px !important;
+  outline: none !important;
+}
+
+.cm-search input:focus { border-color: var(--color-accent) !important; }
+
+.cm-search button {
+  background: var(--color-bg-secondary) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 3px !important;
+  padding: 2px 8px !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+
+.cm-search button:hover { background: var(--color-border) !important; }
+
+.cm-search label {
+  font-size: 12px !important;
+  color: var(--color-text-muted) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+/* Distraction-free */
+.app.distraction-free .toolbar,
+.app.distraction-free .tab-bar,
+.app.distraction-free .status-bar,
+.app.distraction-free .sidebar {
+  display: none;
+}
+
+/* Print */
+@media print {
+  .toolbar, .tab-bar, .status-bar, .sidebar,
+  .editor-pane, .split-divider { display: none !important; }
+  .app, .app-body, .split-pane { display: block !important; height: auto !important; overflow: visible !important; }
+  .preview-pane { padding: 0; height: auto !important; overflow: visible !important; }
 }
 
 /* Split pane */
@@ -252,6 +490,119 @@ body {
   font-size: 12px;
   color: var(--color-text-muted);
   vertical-align: top;
+}
+
+/* Distraction-free mode */
+.app.distraction-free .toolbar,
+.app.distraction-free .status-bar {
+  display: none;
+}
+
+/* Custom CSS modal extras */
+.custom-css-hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.custom-css-hint code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--color-bg-secondary);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.custom-css-textarea {
+  width: 100%;
+  height: 240px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 10px;
+  resize: vertical;
+  line-height: 1.5;
+  outline: none;
+}
+
+.custom-css-textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.modal-btn {
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.modal-btn:hover {
+  background: var(--color-border);
+}
+
+.modal-btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.modal-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.status-autosave {
+  color: var(--color-accent);
+}
+
+/* Recent files dropdown */
+.recent-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 200;
+  background: var(--color-toolbar-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.recent-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-menu-item:hover {
+  background: var(--color-border);
 }
 
 /* Scrollbars */

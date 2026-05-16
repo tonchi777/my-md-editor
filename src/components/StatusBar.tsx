@@ -2,6 +2,7 @@ interface StatusBarProps {
   filePath: string | null;
   content: string;
   isDirty: boolean;
+  autoSave: boolean;
 }
 
 function wordCount(text: string): number {
@@ -12,7 +13,7 @@ function baseName(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
-export function StatusBar({ filePath, content, isDirty }: StatusBarProps) {
+export function StatusBar({ filePath, content, isDirty, autoSave }: StatusBarProps) {
   const label = filePath ? baseName(filePath) : "Untitled";
   return (
     <footer className="status-bar">
@@ -22,6 +23,7 @@ export function StatusBar({ filePath, content, isDirty }: StatusBarProps) {
       </span>
       <span className="status-item">{wordCount(content)} words</span>
       <span className="status-item">{content.length} chars</span>
+      {autoSave && <span className="status-item status-autosave">Auto-save on</span>}
     </footer>
   );
 }

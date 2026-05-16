@@ -1,8 +1,8 @@
-export interface FileState {
-  path: string | null;
+export type Theme = "light" | "dark";
+
+export interface Tab {
+  id: string;
   content: string;
   savedContent: string;
-  isSaving: boolean;
+  path: string | null;
 }
-
-export type Theme = "light" | "dark";

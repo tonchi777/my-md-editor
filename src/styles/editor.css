@@ -9,7 +9,7 @@
 .editor-pane .cm-editor {
   height: 100%;
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 .editor-pane .cm-scroller {

@@ -29,24 +29,45 @@ Most Markdown editors are either web-only (no native file access) or Electron-ba
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org) 18+
-- [Rust](https://rustup.rs) (stable toolchain)
-- Tauri v2 system dependencies — see [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS
+- [Node.js](https://nodejs.org) 18+ — JavaScript runtime
+- [Rust](https://rustup.rs) (stable toolchain) — required by Tauri to compile the desktop wrapper
+- On Windows: [VS C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the "Desktop development with C++" workload
+
+To verify everything is installed, run these in a terminal:
+
+```
+node --version    # should print v18 or higher
+rustc --version   # should print something like rustc 1.x.x
+cargo --version   # should print something like cargo 1.x.x
+```
+
+If `rustc` or `cargo` are not found, install Rust first (see link above) then **restart your terminal** so the path updates.
 
 ## Getting Started
 
-```bash
-# Install dependencies
+**First time only — install dependencies:**
+
+```
 npm install
+```
 
-# Start dev server (opens the app window)
+**Start the app in development mode:**
+
+```
 npm run tauri dev
+```
 
-# Build a release binary
+This compiles the Rust backend (takes 1–3 minutes the first time, much faster after that) and opens the app window. The frontend hot-reloads as you edit files in `src/` — no restart needed for UI changes. Rust changes in `src-tauri/` require a full restart.
+
+**Build a release binary** (optional — produces an installable file):
+
+```
 npm run tauri build
 ```
 
-The release binary and installer land in `src-tauri/target/release/bundle/`.
+The installer lands in `src-tauri/target/release/bundle/` — on Windows that's an `.msi` and a standalone `.exe`.
+
+> **Frontend-only preview (no Rust needed):** If Rust isn't installed yet, you can still run `npm run dev` to open the app in a browser at `http://localhost:1420`. File open/save won't work (those need the Tauri backend) but the editor and preview render normally — useful for testing UI changes.
 
 ## Keyboard Shortcuts
 
@@ -55,31 +76,37 @@ The release binary and installer land in `src-tauri/target/release/bundle/`.
 | `Ctrl+O` | Open file |
 | `Ctrl+S` | Save |
 | `Ctrl+Shift+S` | Save As |
-| `Ctrl+N` | New file |
+| `Ctrl+N` | New file (in active tab) |
+| `Ctrl+T` | New tab |
+| `Ctrl+W` | Close tab |
+| `Ctrl+Tab` | Next tab |
+| `Ctrl+Shift+Tab` | Previous tab |
+| `Ctrl+F` | Find & Replace |
 | `F1` | Markdown reference |
+| `F11` | Toggle distraction-free mode |
 
 ## Roadmap
 
 ### Tier 1 — Quick wins
-- [ ] Recent files list (last 10 opened)
-- [ ] Word wrap toggle
-- [ ] Font size controls (+/− for editor and preview)
-- [ ] Scroll sync between editor and preview
+- [x] Recent files list (last 10 opened)
+- [x] Word wrap toggle
+- [x] Font size controls (+/− for editor and preview)
+- [x] Scroll sync between editor and preview
 - [ ] Word count goal (set a target, show progress in status bar)
 
 ### Tier 2 — Medium effort
-- [ ] Auto-save (every 30s when dirty)
-- [ ] Export to HTML (standalone file with inlined CSS)
-- [ ] Export to plain text (.txt)
-- [ ] Distraction-free mode (F11)
-- [ ] Custom preview CSS
+- [x] Auto-save (every 30s when dirty)
+- [x] Export to HTML (standalone file with inlined CSS)
+- [x] Export to plain text (.txt)
+- [x] Distraction-free mode (F11)
+- [x] Custom preview CSS
 
 ### Tier 3 — Bigger features
-- [ ] Folder sidebar (browse .md files in a directory)
-- [ ] Multiple tabs
-- [ ] Find & Replace
-- [ ] Print / PDF export
-- [ ] Export to DOCX (via `docx` npm package or pandoc)
+- [x] Folder sidebar (browse .md files in a directory)
+- [x] Multiple tabs
+- [x] Find & Replace (Ctrl+F)
+- [x] Print / PDF export
+- [x] Export to DOCX (via `docx` npm package)
 
 ## CI/CD
 
@@ -97,7 +124,6 @@ git push origin v0.1.0
 
 - Images with relative paths in `.md` files won't render
 - Files outside the home directory may be blocked by the Tauri sandbox
-- No scroll sync yet (on the roadmap)
 
 ## License
 

@@ -17,6 +17,7 @@
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-fs": "^2",
     "@uiw/react-codemirror": "^4",
+    "docx": "^9.6.1",
     "dompurify": "^3",
     "highlight.js": "^11",
     "lucide-react": "^0.400.0",

@@ -1,5 +1,6 @@
 import CodeMirror from "@uiw/react-codemirror";
 import type { EditorView } from "@codemirror/view";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { getExtensions } from "../lib/codemirrorSetup";
 
 interface EditorProps {
@@ -15,8 +16,9 @@ export function Editor({ content, isDark, wordWrap, onChange, onEditorCreated }:
     <div className="editor-pane">
       <CodeMirror
         value={content}
+        theme={isDark ? oneDark : "light"}
         onChange={onChange}
-        extensions={getExtensions(isDark, wordWrap)}
+        extensions={getExtensions(wordWrap)}
         basicSetup={false}
         height="100%"
         style={{ height: "100%", overflow: "hidden" }}

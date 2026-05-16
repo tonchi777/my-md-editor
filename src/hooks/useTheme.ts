@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Theme } from "../types";
 
 function getInitialTheme(): Theme {
@@ -13,6 +14,7 @@ export function useTheme() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("md-editor-theme", theme);
+    getCurrentWindow().setTheme(theme).catch(() => {});
   }, [theme]);
 
   useEffect(() => {

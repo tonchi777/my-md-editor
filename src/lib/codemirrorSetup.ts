@@ -26,9 +26,7 @@ import {
 } from "@codemirror/language";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { oneDark } from "@codemirror/theme-one-dark";
-
-export function getExtensions(isDark: boolean, wordWrap: boolean): Extension[] {
+export function getExtensions(wordWrap: boolean): Extension[] {
   return [
     lineNumbers(),
     history(),
@@ -54,6 +52,5 @@ export function getExtensions(isDark: boolean, wordWrap: boolean): Extension[] {
     ]),
     markdown({ codeLanguages: languages }),
     ...(wordWrap ? [EditorView.lineWrapping] : []),
-    ...(isDark ? [oneDark] : []),
   ];
 }

@@ -349,6 +349,9 @@ body {
 }
 
 /* Print */
+@page {
+  margin: 1.5cm;
+}
 @media print {
   .toolbar, .tab-bar, .status-bar, .sidebar,
   .editor-pane, .split-divider { display: none !important; }

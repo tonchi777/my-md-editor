@@ -92,6 +92,7 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 | `Ctrl+Shift+Tab` | Previous tab |
 | `Ctrl+F` | Find & Replace |
 | `F1` | Help modal (Shortcuts / Markdown / Changelog / About) |
+| `F2` | Markdown reference |
 | `F11` | Toggle distraction-free mode |
 
 ## Roadmap

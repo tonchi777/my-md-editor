@@ -371,6 +371,8 @@ export default function App() {
         if (editorView) openSearchPanel(editorView);
       } else if (e.key === "F1") {
         e.preventDefault(); setHelpTab(t => t ? null : "shortcuts");
+      } else if (e.key === "F2") {
+        e.preventDefault(); setHelpTab(t => t === "reference" ? null : "reference");
       } else if (e.key === "F11") {
         e.preventDefault(); setDistractionFree(v => !v);
       } else if (e.key === "Escape" && distractionFree) {

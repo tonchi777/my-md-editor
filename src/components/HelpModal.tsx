@@ -28,7 +28,8 @@ const SHORTCUTS = [
   { key: "Ctrl+Tab",       action: "Next tab" },
   { key: "Ctrl+Shift+Tab", action: "Previous tab" },
   { key: "Ctrl+F",         action: "Find & Replace" },
-  { key: "F1",             action: "This help modal" },
+  { key: "F1",             action: "Help modal (Shortcuts / Markdown / Changelog / About)" },
+  { key: "F2",             action: "Markdown reference" },
   { key: "F11",            action: "Toggle distraction-free mode" },
   { key: "Esc",            action: "Exit distraction-free mode" },
 ];

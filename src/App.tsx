@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import type { EditorView } from "@codemirror/view";
 import { openSearchPanel } from "@codemirror/search";
 import { Toolbar } from "./components/Toolbar";
@@ -102,6 +104,21 @@ export default function App() {
 
   const { theme, toggleTheme } = useTheme();
   const { openFile, openFilePath, saveFile, saveFileAs, exportFile, exportBinaryFile, recentFiles, addToRecent } = useFileSystem();
+
+  // If launched via file association, open that file in tab 1 and move welcome to tab 2
+  useEffect(() => {
+    invoke<string | null>("get_open_file_path").then(async (path) => {
+      if (!path) return;
+      try {
+        const content = await readTextFile(path);
+        const fileTab = makeTab(content, path);
+        fileTab.savedContent = content;
+        const welcomeTab = makeTab(WELCOME);
+        setTabsState({ tabs: [fileTab, welcomeTab], activeId: fileTab.id });
+        addToRecent(path);
+      } catch { /* ignore unreadable paths */ }
+    }).catch(() => { /* not running in Tauri (browser preview) */ });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Derive active tab values
   const activeTab = tabs.find(t => t.id === activeId) ?? tabs[0];

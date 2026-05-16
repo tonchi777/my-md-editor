@@ -10,6 +10,7 @@ interface TabBarProps {
 }
 
 function tabTitle(tab: Tab): string {
+  if (tab.label) return tab.label;
   if (!tab.path) return "Untitled";
   return tab.path.split(/[\\/]/).pop() ?? "Untitled";
 }

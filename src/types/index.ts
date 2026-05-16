@@ -5,4 +5,5 @@ export interface Tab {
   content: string;
   savedContent: string;
   path: string | null;
+  label?: string;
 }

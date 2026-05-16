@@ -1,6 +1,6 @@
-# my-md-editor
+# Pasulong MD
 
-A lightweight, cross-platform Markdown editor and viewer built with Tauri v2 and React.
+A lightweight, cross-platform Markdown editor built with Tauri v2 and React.
 
 ## Why
 
@@ -10,10 +10,19 @@ Most Markdown editors are either web-only (no native file access) or Electron-ba
 
 - Live split preview — editor and rendered output side-by-side, updates as you type
 - Native file open/save via OS dialogs
+- File association — double-click any `.md` file in Explorer to open it directly in the app
+- Multiple tabs (Ctrl+T / Ctrl+W / Ctrl+Tab)
+- Folder sidebar — browse and open `.md` files from a directory
+- Find & Replace (Ctrl+F)
 - Syntax highlighting in fenced code blocks (JS, TS, Python, Rust, Go, and more)
 - Dark/light theme — follows OS preference, manually overridable, persists across restarts
 - Resizable split pane with collapse/restore for each panel
+- Auto-save every 30 seconds when the file is dirty
+- Export to HTML, plain text (.txt), DOCX, or PDF/print
+- Distraction-free mode (F11)
+- Custom preview CSS
 - Markdown reference modal (F1) — quick cheat sheet for syntax
+- About modal — app info and version
 - Dirty state indicator and unsaved-changes warning on close
 
 ## Stack
@@ -84,6 +93,7 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 | `Ctrl+F` | Find & Replace |
 | `F1` | Markdown reference |
 | `F11` | Toggle distraction-free mode |
+| Info button | About Pasulong MD |
 
 ## Roadmap
 
@@ -108,6 +118,12 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 - [x] Print / PDF export
 - [x] Export to DOCX (via `docx` npm package)
 
+### Tier 4 — Polish
+- [x] App name and branding (Pasulong MD)
+- [x] Custom icon
+- [x] About modal
+- [x] File association (open `.md` files from Explorer/Finder)
+
 ## CI/CD
 
 Two GitHub Actions workflows:
@@ -119,6 +135,8 @@ To cut a release:
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+The release workflow publishes a **draft** GitHub release named `Pasulong MD vX.Y.Z` with installers for Windows (`.msi`/`.exe`), macOS (`.dmg`, universal binary), and Linux (`.AppImage`/`.deb`/`.rpm`). Promote the draft to publish it.
 
 ## Known Limitations
 

@@ -9,9 +9,8 @@ import { Editor } from "./components/Editor";
 import { Preview } from "./components/Preview";
 import { SplitPane } from "./components/SplitPane";
 import { StatusBar } from "./components/StatusBar";
-import { HelpModal } from "./components/HelpModal";
+import { HelpModal, type HelpTab } from "./components/HelpModal";
 import { CustomCssModal } from "./components/CustomCssModal";
-import { AboutModal } from "./components/AboutModal";
 import { FolderSidebar } from "./components/FolderSidebar";
 import { useTheme } from "./hooks/useTheme";
 import { useMarkdown } from "./hooks/useMarkdown";
@@ -71,14 +70,14 @@ A lightweight desktop Markdown editor. Start writing — the preview updates as 
 | \`F11\` | Distraction-free mode |
 `;
 
-function makeTab(content = "", path: string | null = null): Tab {
-  return { id: Math.random().toString(36).slice(2), content, savedContent: content, path };
+function makeTab(content = "", path: string | null = null, label?: string): Tab {
+  return { id: Math.random().toString(36).slice(2), content, savedContent: content, path, label };
 }
 
 interface TabsState { tabs: Tab[]; activeId: string }
 
 function initTabsState(): TabsState {
-  const tab = makeTab(WELCOME);
+  const tab = makeTab(WELCOME, null, "Welcome");
   return { tabs: [tab], activeId: tab.id };
 }
 
@@ -87,9 +86,8 @@ export default function App() {
   const [editorVisible, setEditorVisible] = useState(true);
   const [previewVisible, setPreviewVisible] = useState(true);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpTab, setHelpTab] = useState<HelpTab | null>(null);
   const [customCssOpen, setCustomCssOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [distractionFree, setDistractionFree] = useState(false);
 
   const [wordWrap, setWordWrap] = useState(() => localStorage.getItem("md-editor-word-wrap") === "true");
@@ -113,7 +111,7 @@ export default function App() {
         const content = await readTextFile(path);
         const fileTab = makeTab(content, path);
         fileTab.savedContent = content;
-        const welcomeTab = makeTab(WELCOME);
+        const welcomeTab = makeTab(WELCOME, null, "Welcome");
         setTabsState({ tabs: [fileTab, welcomeTab], activeId: fileTab.id });
         addToRecent(path);
       } catch { /* ignore unreadable paths */ }
@@ -246,7 +244,7 @@ export default function App() {
   // ── File operations ─────────────────────────────────────────────
   const handleNew = useCallback(() => {
     if (isDirty && !window.confirm("Discard unsaved changes?")) return;
-    updateActiveTab({ content: "", savedContent: "", path: null });
+    updateActiveTab({ content: "", savedContent: "", path: null, label: undefined });
   }, [isDirty, updateActiveTab]);
 
   const openInActiveTab = useCallback((content: string, path: string) => {
@@ -277,12 +275,17 @@ export default function App() {
   }, [openFilePath, openInActiveTab, addToRecent]);
 
   const handleOpenFromSidebar = useCallback(async (path: string) => {
+    const existing = tabs.find(t => t.path === path);
+    if (existing) {
+      setTabsState(s => ({ ...s, activeId: existing.id }));
+      return;
+    }
     const text = await openFilePath(path);
     if (text !== null) {
       openInActiveTab(text, path);
       addToRecent(path);
     }
-  }, [openFilePath, openInActiveTab, addToRecent]);
+  }, [tabs, openFilePath, openInActiveTab, addToRecent]);
 
   const handleSave = useCallback(async () => {
     if (!currentPath) {
@@ -367,7 +370,7 @@ export default function App() {
         e.preventDefault();
         if (editorView) openSearchPanel(editorView);
       } else if (e.key === "F1") {
-        e.preventDefault(); setHelpOpen(v => !v);
+        e.preventDefault(); setHelpTab(t => t ? null : "shortcuts");
       } else if (e.key === "F11") {
         e.preventDefault(); setDistractionFree(v => !v);
       } else if (e.key === "Escape" && distractionFree) {
@@ -388,8 +391,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         onToggleEditor={toggleEditor}
         onTogglePreview={togglePreview}
-        onHelp={() => setHelpOpen(true)}
-        onAbout={() => setAboutOpen(true)}
+        onHelp={() => setHelpTab("shortcuts")}
         onToggleWordWrap={() => setWordWrap(v => !v)}
         onFontSizeChange={handleFontSizeChange}
         onToggleScrollSync={() => setScrollSync(v => !v)}
@@ -439,8 +441,7 @@ export default function App() {
         />
       </div>
       <StatusBar filePath={currentPath} content={content} isDirty={isDirty} autoSave={autoSave} />
-      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
-      {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
+      {helpTab && <HelpModal initialTab={helpTab} onClose={() => setHelpTab(null)} />}
       {customCssOpen && (
         <CustomCssModal
           initialCss={customCss}

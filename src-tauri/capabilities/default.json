@@ -11,6 +11,7 @@
     "fs:allow-write-file",
     "fs:allow-read-dir",
     "fs:allow-exists",
-    "fs:scope-home-recursive"
+    "fs:scope-home-recursive",
+    "core:window:allow-set-theme"
   ]
 }

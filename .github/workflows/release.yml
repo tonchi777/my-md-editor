@@ -51,7 +51,7 @@ jobs:
 
       - name: Remove Windows-only npm override (non-Windows)
         if: runner.os != 'Windows'
-        run: sed -i '/^os=/d' .npmrc
+        run: perl -i -ne 'print unless /^os=/' .npmrc
 
       - run: npm ci
 

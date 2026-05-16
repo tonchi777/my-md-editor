@@ -2,7 +2,7 @@ import {
   FolderOpen, Save, SaveAll, FilePlus,
   Sun, Moon, PanelLeft, PanelRight, HelpCircle,
   WrapText, ZoomIn, ZoomOut, ArrowUpDown,
-  Timer, Palette, PanelLeftOpen, Search,
+  Timer, Palette, PanelLeftOpen, Search, Info,
 } from "lucide-react";
 import type { Theme } from "../types";
 import { RecentFilesMenu } from "./RecentFilesMenu";
@@ -17,6 +17,7 @@ interface ToolbarProps {
   onToggleEditor: () => void;
   onTogglePreview: () => void;
   onHelp: () => void;
+  onAbout: () => void;
   onToggleWordWrap: () => void;
   onFontSizeChange: (delta: number) => void;
   onToggleScrollSync: () => void;
@@ -44,7 +45,7 @@ interface ToolbarProps {
 
 export function Toolbar({
   onNew, onOpen, onSave, onSaveAs,
-  onToggleTheme, onToggleEditor, onTogglePreview, onHelp,
+  onToggleTheme, onToggleEditor, onTogglePreview, onHelp, onAbout,
   onToggleWordWrap, onFontSizeChange, onToggleScrollSync, onOpenRecent,
   onExportHtml, onExportTxt, onExportDocx, onPrint,
   onFind, onToggleAutoSave, onOpenCustomCss, onToggleSidebar,
@@ -154,6 +155,9 @@ export function Toolbar({
         </button>
         <button className="toolbar-btn" onClick={onHelp} title="Markdown reference (F1)">
           <HelpCircle size={16} />
+        </button>
+        <button className="toolbar-btn" onClick={onAbout} title="About Pasulong MD">
+          <Info size={16} />
         </button>
       </div>
     </header>

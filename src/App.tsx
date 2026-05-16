@@ -9,6 +9,7 @@ import { SplitPane } from "./components/SplitPane";
 import { StatusBar } from "./components/StatusBar";
 import { HelpModal } from "./components/HelpModal";
 import { CustomCssModal } from "./components/CustomCssModal";
+import { AboutModal } from "./components/AboutModal";
 import { FolderSidebar } from "./components/FolderSidebar";
 import { useTheme } from "./hooks/useTheme";
 import { useMarkdown } from "./hooks/useMarkdown";
@@ -86,6 +87,7 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [customCssOpen, setCustomCssOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [distractionFree, setDistractionFree] = useState(false);
 
   const [wordWrap, setWordWrap] = useState(() => localStorage.getItem("md-editor-word-wrap") === "true");
@@ -370,6 +372,7 @@ export default function App() {
         onToggleEditor={toggleEditor}
         onTogglePreview={togglePreview}
         onHelp={() => setHelpOpen(true)}
+        onAbout={() => setAboutOpen(true)}
         onToggleWordWrap={() => setWordWrap(v => !v)}
         onFontSizeChange={handleFontSizeChange}
         onToggleScrollSync={() => setScrollSync(v => !v)}
@@ -419,6 +422,7 @@ export default function App() {
         />
       </div>
       <StatusBar filePath={currentPath} content={content} isDirty={isDirty} autoSave={autoSave} />
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
       {customCssOpen && (
         <CustomCssModal

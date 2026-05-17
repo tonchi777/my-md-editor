@@ -324,7 +324,13 @@ export default function App() {
     await exportBinaryFile(data, base + ".docx", [{ name: "Word Document", extensions: ["docx"] }]);
   }, [html, fileName, exportBinaryFile]);
 
-  const handlePrint = useCallback(() => { window.print(); }, []);
+  const handlePrint = useCallback(() => {
+    const base = fileName?.replace(/\.[^.]+$/, "") ?? "document";
+    const prev = document.title;
+    document.title = base;
+    window.print();
+    document.title = prev;
+  }, [fileName]);
 
   // ── Panel toggles ────────────────────────────────────────────────
   const toggleEditor = useCallback(() => {

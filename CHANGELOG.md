@@ -5,6 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-18
+
+### Added
+- F2 shortcut jumps directly to the Markdown reference tab in the Help modal
+- Help modal reorganized into tabs: Shortcuts, Markdown Reference, Changelog, About
+- Version bump script: `npm run version:bump patch|minor|major`
+
+### Changed
+- Sidebar now uses full-height layout; toolbar wraps to a second row at narrow widths instead of hiding buttons
+- PDF / Print now suggests the open file's name as the default save filename
+- Markdown rendering: single newlines now produce line breaks (GFM `breaks: true`), matching GitHub behavior
+
+### Fixed
+- Dark mode: editor theme and native title bar now correctly reflect the active theme on launch and toggle
+- DOCX export: fixed paragraph spacing and multi-page layout
+- Print / PDF: fixed inconsistent margins on overflow pages
+- Custom CSS modal: textarea was not typeable (clicking it dismissed the modal); now uses robust backdrop-click detection and auto-focuses on open
+
 ## [0.1.0] - 2026-05-17
 
 ### Added

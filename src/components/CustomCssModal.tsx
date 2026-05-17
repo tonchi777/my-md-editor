@@ -17,10 +17,9 @@ export function CustomCssModal({ initialCss, onSave, onClose }: CustomCssModalPr
   }, [onClose]);
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         className="modal"
-        onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Custom Preview CSS"
@@ -42,6 +41,7 @@ export function CustomCssModal({ initialCss, onSave, onClose }: CustomCssModalPr
             onChange={e => setValue(e.target.value)}
             placeholder={`.preview-pane {\n  font-family: Georgia, serif;\n}\n.preview-pane h1 {\n  color: #e53e3e;\n}`}
             spellCheck={false}
+            autoFocus
           />
         </div>
         <div className="modal-footer">

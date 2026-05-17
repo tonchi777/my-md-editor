@@ -45,7 +45,7 @@ function escapeHtml(text: string): string {
 
 marked.use({
   gfm: true,
-  breaks: false,
+  breaks: true,
   renderer: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     code(token: any) {

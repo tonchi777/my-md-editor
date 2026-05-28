@@ -7,9 +7,9 @@ Read it at the start of every session. Update the session log and roadmap checkb
 
 ## Current Status
 
-**The app is fully functional and building.** Core v1 features are complete.
+**v0.1.1 released (2026-05-18).** All Tier 1–4 features are complete and shipped.
 Frontend builds with Vite, Rust backend compiles with Cargo, CI/CD is wired up on GitHub Actions.
-The app is not yet distributed — no release tag has been cut.
+Installers published as a GitHub draft release at https://github.com/tonchi888/my-md-editor.
 
 ---
 
@@ -22,11 +22,30 @@ The app is not yet distributed — no release tag has been cut.
 - [x] Dark/light theme — OS detection, manual toggle, persisted in localStorage
 - [x] Resizable split pane (pointer capture drag, ratio persisted in localStorage)
 - [x] Collapse/restore editor and preview panels independently
-- [x] Keyboard shortcuts: Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+N, F1
+- [x] Keyboard shortcuts: Ctrl+O, Ctrl+S, Ctrl+Shift+S, Ctrl+N, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+F, F1, F2, F11
 - [x] Dirty state tracking + unsaved-changes warning on close
 - [x] Status bar (filename, word count, char count)
-- [x] Markdown reference modal (F1 / ? button) — 8 sections of syntax cheat sheet
-- [x] GitHub Actions CI (ci.yml — builds on every push)
+- [x] Multiple tabs (TabBar — open several files, cycle with Ctrl+Tab)
+- [x] Folder sidebar (FolderSidebar — browse .md files in a directory, deduplicates open tabs)
+- [x] Find & Replace (Ctrl+F — in-editor via CodeMirror search panel)
+- [x] Recent files list (last 10 opened, clock icon in toolbar)
+- [x] Word wrap toggle + font size controls (+/− for editor and preview)
+- [x] Scroll sync between editor and preview
+- [x] Auto-save every 30 seconds when dirty, indicator in status bar
+- [x] Export to HTML (standalone with inlined CSS)
+- [x] Export to DOCX (via `docx` npm package)
+- [x] Export to plain text (.txt)
+- [x] Print / PDF export (browser print dialog, filename suggested from open file)
+- [x] Distraction-free mode (F11 hides toolbar + status bar)
+- [x] Custom preview CSS (CustomCssModal — palette icon in toolbar)
+- [x] Help modal tabbed UI — Shortcuts, Markdown Reference, Changelog, About (F1)
+- [x] F2 shortcut jumps directly to Markdown reference tab
+- [x] File association — double-click .md in Explorer to open in app
+- [x] App name/icon/branding (Pasulong MD)
+- [x] Sidebar spans full height beside tab bar; toolbar wraps at narrow widths
+- [x] GFM line breaks (single newline → `<br>`)
+- [x] Version bump script (`npm run version:bump patch|minor|major`)
+- [x] GitHub Actions CI (ci.yml — builds on every push to master)
 - [x] GitHub Actions release workflow (release.yml — draft release on v* tags)
 
 ---
@@ -37,26 +56,40 @@ Tick off items as they are completed. Add the session date in parentheses.
 
 ### Tier 1 — Quick wins
 
-- [ ] Recent files list (last 10 opened, shown in a dropdown from the toolbar)
-- [ ] Word wrap toggle (button in toolbar, persisted in localStorage)
-- [ ] Font size controls (+/− buttons for editor and preview independently)
-- [ ] Scroll sync (editor and preview scroll positions stay linked)
+- [x] Recent files list (last 10 opened, shown in a dropdown from the toolbar)
+- [x] Word wrap toggle (button in toolbar, persisted in localStorage)
+- [x] Font size controls (+/− buttons for editor and preview independently)
+- [x] Scroll sync (editor and preview scroll positions stay linked)
+- [ ] Word count goal (set a target, show progress in status bar)
 
 ### Tier 2 — Medium effort
 
-- [ ] Auto-save (write to disk every 30s when dirty, indicator in status bar)
-- [ ] Export to HTML (save rendered preview as standalone .html file with inlined CSS)
-- [ ] Export to plain text (.txt — strip markdown syntax, useful for copy-paste into plain editors)
-- [ ] Distraction-free mode (F11 hides toolbar + status bar)
-- [ ] Custom preview CSS (user can supply a .css file to style the preview)
+- [x] Auto-save (write to disk every 30s when dirty, indicator in status bar)
+- [x] Export to HTML (save rendered preview as standalone .html file with inlined CSS)
+- [x] Export to plain text (.txt — strip markdown syntax, useful for copy-paste into plain editors)
+- [x] Distraction-free mode (F11 hides toolbar + status bar)
+- [x] Custom preview CSS (user can supply a .css file to style the preview)
 
 ### Tier 3 — Bigger features
 
-- [ ] Folder sidebar (open a directory, browse .md files in a tree panel)
-- [ ] Multiple tabs (open several files at once)
-- [ ] Find & Replace (in-editor, CodeMirror already has the engine)
-- [ ] Print / PDF export (target the preview pane via browser print)
-- [ ] Export to DOCX (requires the `docx` npm package to build the Word XML structure, or shell out to pandoc if installed)
+- [x] Folder sidebar (open a directory, browse .md files in a tree panel)
+- [x] Multiple tabs (open several files at once)
+- [x] Find & Replace (in-editor, CodeMirror already has the engine)
+- [x] Print / PDF export (target the preview pane via browser print)
+- [x] Export to DOCX (via the `docx` npm package)
+
+### Tier 4 — Polish
+
+- [x] App name and branding (Pasulong MD)
+- [x] Custom icon
+- [x] About tab inside Help modal
+- [x] File association (open `.md` files from Explorer/Finder)
+- [x] Sidebar spans full height beside the tab bar
+- [x] Sidebar deduplicates already-open files (switches to existing tab)
+- [x] Toolbar wraps to second row at narrow widths
+- [x] Changelog (CHANGELOG.md + `npm run version:bump` script)
+- [x] GFM line breaks (`breaks: true`) matching GitHub behavior
+- [x] F2 shortcut for Markdown reference tab
 
 ---
 
@@ -68,13 +101,24 @@ Key files an agent needs to know:
 |---|---|
 | `src/App.tsx` | Root component. All state, keyboard shortcuts, layout wiring. |
 | `src/components/Toolbar.tsx` | Top bar. Add new buttons here; add corresponding prop + handler in App.tsx. |
+| `src/components/Editor.tsx` | CodeMirror 6 editor wrapper. |
+| `src/components/Preview.tsx` | Sanitized HTML preview pane. |
+| `src/components/TabBar.tsx` | Multi-tab management UI. |
 | `src/components/SplitPane.tsx` | Drag-to-resize pane. `leftVisible`/`rightVisible` props control collapse. |
-| `src/components/HelpModal.tsx` | F1 reference modal. SECTIONS array drives the content. |
+| `src/components/FolderSidebar.tsx` | Directory browser panel. Deduplicates already-open tabs. |
+| `src/components/StatusBar.tsx` | Word count / char count / filename bar. |
+| `src/components/HelpModal.tsx` | F1 tabbed modal — Shortcuts, Markdown Reference, Changelog, About. |
+| `src/components/ExportMenu.tsx` | HTML / DOCX / TXT / PDF export dropdown. |
+| `src/components/CustomCssModal.tsx` | Custom CSS editor modal (palette icon in toolbar). |
+| `src/components/RecentFilesMenu.tsx` | Recent files dropdown (clock icon in toolbar). |
 | `src/hooks/useFileSystem.ts` | All Tauri file I/O. `openFile`, `saveFile`, `saveFileAs`. |
 | `src/hooks/useTheme.ts` | Theme state. Sets `document.documentElement.dataset.theme`. |
 | `src/hooks/useMarkdown.ts` | Renders markdown to sanitized HTML string. Memoized on content. |
 | `src/lib/markdownRenderer.ts` | Configures marked + highlight.js once at module load. |
 | `src/lib/codemirrorSetup.ts` | Returns CM6 extension array. Accepts `isDark` to swap themes. |
+| `src/lib/exportHtml.ts` | Standalone HTML export logic (inlines CSS). |
+| `src/lib/exportDocx.ts` | DOCX export via `docx` npm package. |
+| `src/types/index.ts` | Shared TypeScript types (Tab, etc.). |
 | `src/styles/themes.css` | All CSS custom properties. Also holds toolbar, split-pane, modal, status-bar styles. |
 | `src/styles/preview.css` | Prose typography for the rendered HTML pane. |
 | `src/styles/hljs-themes.css` | Syntax highlight colors, scoped to `[data-theme]`. |
@@ -120,6 +164,15 @@ Things that caused problems — don't repeat them.
 ## Session Log
 
 Most recent first. Add a brief entry at the end of each session.
+
+### 2026-05-18
+- Implemented all Tier 4 polish: file association, full-height sidebar, toolbar wrap, F2 shortcut, tabbed Help modal, GFM breaks, version bump script
+- Fixed: dark mode on launch, DOCX spacing, print margins, custom CSS modal not typeable
+- Released v0.1.1
+
+### 2026-05-17
+- Implemented all Tier 1–3 features: tabs, sidebar, Find & Replace, recent files, word wrap, font size, scroll sync, auto-save, HTML/DOCX/TXT/PDF export, distraction-free mode, custom CSS
+- Released v0.1.0
 
 ### 2026-05-16
 - Initialized project from scratch (Tauri v2 + React 18 + TypeScript)

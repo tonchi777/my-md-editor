@@ -138,10 +138,10 @@ To cut a release:
 ```bash
 npm run version:bump patch   # or minor / major
 # fill in CHANGELOG.md
-git add -A && git commit -m "Release v0.1.1"
-git tag v0.1.1
+git add -A && git commit -m "Release vX.Y.Z"
+git tag vX.Y.Z
 git push origin master
-git push origin v0.1.1
+git push origin vX.Y.Z
 ```
 
 The release workflow publishes a **draft** GitHub release named `Pasulong MD vX.Y.Z` with installers for Windows (`.msi`/`.exe`), macOS (`.dmg`, universal binary), and Linux (`.AppImage`/`.deb`/`.rpm`). Promote the draft to publish it.

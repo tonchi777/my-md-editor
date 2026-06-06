@@ -11,6 +11,8 @@ env:
 
 jobs:
   build:
+    # Skip on release commits — the Release workflow handles those builds
+    if: "!startsWith(github.event.head_commit.message, 'Release v')"
     strategy:
       fail-fast: false
       matrix:

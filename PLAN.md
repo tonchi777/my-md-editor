@@ -160,6 +160,7 @@ Things that caused problems — don't repeat them.
 - **VS Build Tools 2019 (not 2022):** The installed version is 2019. Tauri v2 builds fine with it — don't assume 2022 is required.
 - **`tauri.conf.json` `bundle.icon`:** Must reference at least one icon or Tauri's Windows resource file generator errors during `cargo build`. Icon lives at `src-tauri/icons/icon.ico`.
 - **`ubuntu-22.04` in CI (not `ubuntu-latest`):** Use the pinned version. `ubuntu-latest` may shift and break webkit2gtk package names.
+- **Release commit message convention:** Start with `Release v` (e.g. `Release v0.1.2`). CI skips this pattern to avoid running in parallel with the Release workflow on the same commit.
 
 ---
 
@@ -169,6 +170,7 @@ Most recent first. Add a brief entry at the end of each session.
 
 ### 2026-06-06
 - Added LaTeX math rendering: `katex` + `marked-katex-extension`; DOMPurify configured to pass math elements; KaTeX CSS imported in main.tsx
+- Improved CI/Release workflow: CI skips on "Release v*" commits to avoid redundant parallel builds; type-check added to Release workflow instead
 
 ### 2026-05-18
 - Implemented all Tier 4 polish: file association, full-height sidebar, toolbar wrap, F2 shortcut, tabbed Help modal, GFM breaks, version bump script

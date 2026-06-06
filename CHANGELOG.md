@@ -5,6 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-06
+
+### Added
+- LaTeX math rendering via KaTeX — inline `$...$` and block `$$...$$` syntax now renders as typeset equations in the preview
+
 ## [0.1.1] - 2026-05-18
 
 ### Added

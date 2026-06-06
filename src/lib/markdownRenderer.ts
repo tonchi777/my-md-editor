@@ -1,4 +1,5 @@
 import { marked } from "marked";
+import markedKatex from "marked-katex-extension";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -42,6 +43,8 @@ function escapeHtml(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+marked.use(markedKatex({ throwOnError: false, output: "html" }));
 
 marked.use({
   gfm: true,

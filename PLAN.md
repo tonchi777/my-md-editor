@@ -7,7 +7,7 @@ Read it at the start of every session. Update the session log and roadmap checkb
 
 ## Current Status
 
-**v0.1.1 released (2026-05-18).** All Tier 1–4 features are complete and shipped.
+**v0.1.2 in progress (2026-06-06).** All Tier 1–4 features shipped in v0.1.1. LaTeX math rendering added post-release.
 Frontend builds with Vite, Rust backend compiles with Cargo, CI/CD is wired up on GitHub Actions.
 Installers published as a GitHub draft release at https://github.com/tonchi888/my-md-editor.
 
@@ -90,6 +90,7 @@ Tick off items as they are completed. Add the session date in parentheses.
 - [x] Changelog (CHANGELOG.md + `npm run version:bump` script)
 - [x] GFM line breaks (`breaks: true`) matching GitHub behavior
 - [x] F2 shortcut for Markdown reference tab
+- [x] LaTeX math rendering — inline `$...$` and block `$$...$$` via KaTeX (2026-06-06)
 
 ---
 
@@ -114,7 +115,7 @@ Key files an agent needs to know:
 | `src/hooks/useFileSystem.ts` | All Tauri file I/O. `openFile`, `saveFile`, `saveFileAs`. |
 | `src/hooks/useTheme.ts` | Theme state. Sets `document.documentElement.dataset.theme`. |
 | `src/hooks/useMarkdown.ts` | Renders markdown to sanitized HTML string. Memoized on content. |
-| `src/lib/markdownRenderer.ts` | Configures marked + highlight.js once at module load. |
+| `src/lib/markdownRenderer.ts` | Configures marked + highlight.js + KaTeX (math rendering) once at module load. |
 | `src/lib/codemirrorSetup.ts` | Returns CM6 extension array. Accepts `isDark` to swap themes. |
 | `src/lib/exportHtml.ts` | Standalone HTML export logic (inlines CSS). |
 | `src/lib/exportDocx.ts` | DOCX export via `docx` npm package. |
@@ -144,7 +145,8 @@ These were made deliberately — don't change them without a reason.
 - **No basicSetup in CodeMirror:** `basicSetup={false}` gives full control over the extension list. Extensions live in `codemirrorSetup.ts`.
 - **CSS custom properties for theming:** no JS theme logic in components — only `document.documentElement.dataset.theme` changes. Everything else is CSS.
 - **Pointer capture for SplitPane drag:** `setPointerCapture` on the divider so drag works even when pointer leaves the element.
-- **DOMPurify on all rendered HTML:** even in a desktop app, malicious .md files can cause self-XSS.
+- **DOMPurify on all rendered HTML:** even in a desktop app, malicious .md files can cause self-XSS. KaTeX math elements (`ADD_TAGS` / `ADD_ATTR`) are explicitly allowed through.
+- **KaTeX `output: "html"`:** MathML output disabled — pure HTML spans are simpler for DOMPurify and avoid browser MathML inconsistencies.
 - **`fs:scope-home-recursive` capability:** broadest practical scope without being unrestricted. Files outside home dir are denied.
 
 ---
@@ -164,6 +166,9 @@ Things that caused problems — don't repeat them.
 ## Session Log
 
 Most recent first. Add a brief entry at the end of each session.
+
+### 2026-06-06
+- Added LaTeX math rendering: `katex` + `marked-katex-extension`; DOMPurify configured to pass math elements; KaTeX CSS imported in main.tsx
 
 ### 2026-05-18
 - Implemented all Tier 4 polish: file association, full-height sidebar, toolbar wrap, F2 shortcut, tabbed Help modal, GFM breaks, version bump script

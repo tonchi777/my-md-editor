@@ -117,6 +117,7 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 - [x] Find & Replace (Ctrl+F)
 - [x] Print / PDF export
 - [x] Export to DOCX (via `docx` npm package)
+- [ ] Online sync via cloud storage provider (Google Drive / Dropbox / OneDrive) — see `SYNC_OPTION_A.md`
 
 ### Tier 4 — Polish
 - [x] App name and branding (Pasulong MD)

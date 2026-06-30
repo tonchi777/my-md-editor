@@ -91,6 +91,7 @@ Tick off items as they are completed. Add the session date in parentheses.
 - [x] GFM line breaks (`breaks: true`) matching GitHub behavior
 - [x] F2 shortcut for Markdown reference tab
 - [x] LaTeX math rendering — inline `$...$` and block `$$...$$` via KaTeX (2026-06-06)
+- [x] Rename tab — hover pencil icon on any tab to set a custom name; custom name feeds into Save / Save As / export default filenames (2026-06-30)
 
 ---
 
@@ -112,6 +113,7 @@ Key files an agent needs to know:
 | `src/components/ExportMenu.tsx` | HTML / DOCX / TXT / PDF export dropdown. |
 | `src/components/CustomCssModal.tsx` | Custom CSS editor modal (palette icon in toolbar). |
 | `src/components/RecentFilesMenu.tsx` | Recent files dropdown (clock icon in toolbar). |
+| `src/components/RenameModal.tsx` | Rename tab modal (pencil icon on tab hover). |
 | `src/hooks/useFileSystem.ts` | All Tauri file I/O. `openFile`, `saveFile`, `saveFileAs`. |
 | `src/hooks/useTheme.ts` | Theme state. Sets `document.documentElement.dataset.theme`. |
 | `src/hooks/useMarkdown.ts` | Renders markdown to sanitized HTML string. Memoized on content. |
@@ -167,6 +169,12 @@ Things that caused problems — don't repeat them.
 ## Session Log
 
 Most recent first. Add a brief entry at the end of each session.
+
+### 2026-06-30
+- Added rename tab feature: hover pencil icon on any tab to set a custom name; custom name is used as the default filename in Save, Save As, and all export dialogs
+- Added `RenameModal` component
+- Updated `useFileSystem.saveFileAs` to accept an optional `defaultPath` parameter
+- Updated `handleSave`, `handleSaveAs`, and all export handlers to pass `activeTab.label` as the suggested filename
 
 ### 2026-06-06
 - Added LaTeX math rendering: `katex` + `marked-katex-extension`; DOMPurify configured to pass math elements; KaTeX CSS imported in main.tsx

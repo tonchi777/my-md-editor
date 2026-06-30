@@ -50,8 +50,8 @@ export function useFileSystem() {
     }
   };
 
-  const saveFileAs = async (content: string): Promise<string | null> => {
-    const result = await save({ filters: MD_FILTERS, defaultPath: "untitled.md" });
+  const saveFileAs = async (content: string, defaultPath?: string): Promise<string | null> => {
+    const result = await save({ filters: MD_FILTERS, defaultPath: defaultPath ?? "untitled.md" });
     if (!result) return null;
     await writeTextFile(result, content);
     return result;

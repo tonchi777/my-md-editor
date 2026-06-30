@@ -1,4 +1,4 @@
-import { X, Plus } from "lucide-react";
+import { X, Plus, Edit2 } from "lucide-react";
 import type { Tab } from "../types";
 
 interface TabBarProps {
@@ -7,6 +7,7 @@ interface TabBarProps {
   onSelectTab: (id: string) => void;
   onCloseTab: (id: string) => void;
   onNewTab: () => void;
+  onRenameTab: (id: string) => void;
 }
 
 function tabTitle(tab: Tab): string {
@@ -15,7 +16,7 @@ function tabTitle(tab: Tab): string {
   return tab.path.split(/[\\/]/).pop() ?? "Untitled";
 }
 
-export function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onNewTab }: TabBarProps) {
+export function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onNewTab, onRenameTab }: TabBarProps) {
   return (
     <div className="tab-bar">
       {tabs.map(tab => (
@@ -35,6 +36,13 @@ export function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onNewTab }:
             title="Close tab"
           >
             <X size={12} />
+          </button>
+          <button
+            className="tab-rename"
+            onClick={e => { e.stopPropagation(); onRenameTab(tab.id); }}
+            title="Rename tab"
+          >
+            <Edit2 size={10} />
           </button>
         </div>
       ))}

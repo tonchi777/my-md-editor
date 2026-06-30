@@ -189,6 +189,29 @@ body {
 
 .tab-close:hover { background: var(--color-border); color: var(--color-text); }
 
+.tab-rename {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  flex-shrink: 0;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.tab:hover .tab-rename {
+  opacity: 1;
+}
+
+.tab-rename:hover { background: var(--color-border); color: var(--color-text); }
+
 .tab-new {
   display: flex;
   align-items: center;
@@ -500,6 +523,28 @@ body {
 .app.distraction-free .toolbar,
 .app.distraction-free .status-bar {
   display: none;
+}
+
+/* Rename modal */
+.rename-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  outline: none;
+  line-height: 1.4;
+}
+
+.rename-input:focus {
+  border-color: var(--color-accent);
+}
+
+.rename-input::placeholder {
+  color: var(--color-text-muted);
 }
 
 /* Custom CSS modal extras */

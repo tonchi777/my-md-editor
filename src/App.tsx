@@ -11,6 +11,7 @@ import { SplitPane } from "./components/SplitPane";
 import { StatusBar } from "./components/StatusBar";
 import { HelpModal, type HelpTab } from "./components/HelpModal";
 import { CustomCssModal } from "./components/CustomCssModal";
+import { RenameModal } from "./components/RenameModal";
 import { FolderSidebar } from "./components/FolderSidebar";
 import { useTheme } from "./hooks/useTheme";
 import { useMarkdown } from "./hooks/useMarkdown";
@@ -88,6 +89,7 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [helpTab, setHelpTab] = useState<HelpTab | null>(null);
   const [customCssOpen, setCustomCssOpen] = useState(false);
+  const [renameTabId, setRenameTabId] = useState<string | null>(null);
   const [distractionFree, setDistractionFree] = useState(false);
 
   const [wordWrap, setWordWrap] = useState(() => localStorage.getItem("md-editor-word-wrap") === "true");
@@ -225,6 +227,18 @@ export default function App() {
     setTabsState(s => ({ ...s, activeId: id }));
   }, []);
 
+  const handleRenameTab = useCallback((id: string) => {
+    setRenameTabId(id);
+  }, []);
+
+  const handleRenameSave = useCallback((label: string) => {
+    setTabsState(s => ({
+      ...s,
+      tabs: s.tabs.map(t => (t.id === s.activeId ? { ...t, label } : t)),
+    }));
+    setRenameTabId(null);
+  }, []);
+
   const handleCloseTab = useCallback((id: string) => {
     setTabsState(s => {
       const tab = s.tabs.find(t => t.id === id)!;
@@ -289,18 +303,20 @@ export default function App() {
 
   const handleSave = useCallback(async () => {
     if (!currentPath) {
-      const path = await saveFileAs(content);
+      const suggested = activeTab.label ?? `untitled.md`;
+      const path = await saveFileAs(content, suggested);
       if (path) { updateActiveTab({ savedContent: content, path }); addToRecent(path); }
     } else {
       const ok = await saveFile(content, currentPath);
       if (ok) updateActiveTab({ savedContent: content });
     }
-  }, [content, currentPath, saveFile, saveFileAs, updateActiveTab, addToRecent]);
+  }, [content, currentPath, saveFile, saveFileAs, updateActiveTab, addToRecent, activeTab.label]);
 
   const handleSaveAs = useCallback(async () => {
-    const path = await saveFileAs(content);
+    const suggested = activeTab.label ?? fileName ?? "untitled.md";
+    const path = await saveFileAs(content, suggested);
     if (path) { updateActiveTab({ savedContent: content, path }); addToRecent(path); }
-  }, [content, saveFileAs, updateActiveTab, addToRecent]);
+  }, [content, saveFileAs, updateActiveTab, addToRecent, activeTab.label, fileName]);
 
   const handleFontSizeChange = useCallback((delta: number) => {
     setFontSize(s => Math.min(24, Math.max(10, s + delta)));
@@ -308,29 +324,29 @@ export default function App() {
 
   // ── Exports ─────────────────────────────────────────────────────
   const handleExportHtml = useCallback(async () => {
-    const base = fileName?.replace(/\.[^.]+$/, "") ?? "document";
+    const base = fileName?.replace(/\.[^.]+$/, "") ?? activeTab.label ?? "document";
     const doc = generateHtmlExport(html, base, theme === "dark", customCss);
     await exportFile(doc, base + ".html", [{ name: "HTML", extensions: ["html"] }]);
-  }, [html, fileName, theme, customCss, exportFile]);
+  }, [html, fileName, theme, customCss, exportFile, activeTab.label]);
 
   const handleExportTxt = useCallback(async () => {
-    const base = fileName?.replace(/\.[^.]+$/, "") ?? "document";
+    const base = fileName?.replace(/\.[^.]+$/, "") ?? activeTab.label ?? "document";
     await exportFile(content, base + ".txt", [{ name: "Text", extensions: ["txt"] }]);
-  }, [content, fileName, exportFile]);
+  }, [content, fileName, exportFile, activeTab.label]);
 
   const handleExportDocx = useCallback(async () => {
-    const base = fileName?.replace(/\.[^.]+$/, "") ?? "document";
+    const base = fileName?.replace(/\.[^.]+$/, "") ?? activeTab.label ?? "document";
     const data = await generateDocxExport(html);
     await exportBinaryFile(data, base + ".docx", [{ name: "Word Document", extensions: ["docx"] }]);
-  }, [html, fileName, exportBinaryFile]);
+  }, [html, fileName, exportBinaryFile, activeTab.label]);
 
   const handlePrint = useCallback(() => {
-    const base = fileName?.replace(/\.[^.]+$/, "") ?? "document";
+    const base = fileName?.replace(/\.[^.]+$/, "") ?? activeTab.label ?? "document";
     const prev = document.title;
     document.title = base;
     window.print();
     document.title = prev;
-  }, [fileName]);
+  }, [fileName, activeTab.label]);
 
   // ── Panel toggles ────────────────────────────────────────────────
   const toggleEditor = useCallback(() => {
@@ -432,6 +448,7 @@ export default function App() {
             onSelectTab={handleSelectTab}
             onCloseTab={handleCloseTab}
             onNewTab={handleNewTab}
+            onRenameTab={handleRenameTab}
           />
           <SplitPane
             leftVisible={editorVisible}
@@ -458,6 +475,17 @@ export default function App() {
           onClose={() => setCustomCssOpen(false)}
         />
       )}
+      {renameTabId && (() => {
+        const tab = tabs.find(t => t.id === renameTabId);
+        if (!tab) return null;
+        return (
+          <RenameModal
+            currentLabel={tab.label ?? (tab.path ? tab.path.split(/[\\/]/).pop() ?? "Untitled" : "Untitled")}
+            onSave={handleRenameSave}
+            onClose={() => setRenameTabId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

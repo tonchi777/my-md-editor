@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-08-07
+
 ### Added
 - Rename tab — hover over a tab and click the pencil icon to give it a custom name; the custom name is used as the default filename in Save, Save As, and all export dialogs
 

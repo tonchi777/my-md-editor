@@ -12,7 +12,7 @@ Most Markdown editors are either web-only (no native file access) or Electron-ba
 - Native file open/save via OS dialogs
 - File association — double-click any `.md` file in Explorer to open it directly in the app
 - Multiple tabs (Ctrl+T / Ctrl+W / Ctrl+Tab)
-- Folder sidebar — browse and open `.md` files from a directory
+- Folder sidebar — browse and open `.md` files from a directory; refreshes automatically when files are added, removed, or renamed
 - Find & Replace (Ctrl+F)
 - Syntax highlighting in fenced code blocks (JS, TS, Python, Rust, Go, and more)
 - Dark/light theme — follows OS preference, manually overridable, persists across restarts
@@ -97,37 +97,92 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 
 ## Roadmap
 
+This is the single plan for the project. Tiers group work by effort; **Next up** sets priority. Design notes for larger items are collapsed under each tier.
+
+### Next up
+1. Warn when an open file changes on disk
+2. Outline panel
+3. Quick open (Ctrl+P)
+
 ### Tier 1 — Quick wins
-- [x] Recent files list (last 10 opened)
-- [x] Word wrap toggle
-- [x] Font size controls (+/− for editor and preview)
-- [x] Scroll sync between editor and preview
+- [ ] Warn when an open file changes on disk (Reload / Keep mine) — reuses the sidebar's folder watcher
 - [ ] Word count goal (set a target, show progress in status bar)
+- [ ] Smart lists — Enter continues bullets/numbers, Tab / Shift+Tab indents
+- [ ] GitHub-style callouts (`> [!NOTE]`, `> [!WARNING]`) and footnotes (`[^1]`)
 
 ### Tier 2 — Medium effort
-- [x] Auto-save (every 30s when dirty)
-- [x] Export to HTML (standalone file with inlined CSS)
-- [x] Export to plain text (.txt)
-- [x] Distraction-free mode (F11)
-- [x] Custom preview CSS
+- [ ] Outline panel (clickable list of headings, as a sidebar tab)
+- [ ] Quick open (Ctrl+P) — fuzzy-search `.md` files in the sidebar folder, including subfolders
+- [ ] Formatting shortcuts — Ctrl+B bold, Ctrl+I italic, Ctrl+Shift+X strikethrough
+- [ ] Reopen last tabs, folder and cursor positions on launch
+- [ ] Mermaid diagrams in fenced ` ```mermaid ` blocks
+- [ ] Clickable task checkboxes in preview (updates the source)
+- [ ] Auto-align Markdown tables
+
+<details>
+<summary>Design notes — formatting shortcuts</summary>
+
+- Implement as a CodeMirror keymap in `src/lib/codemirrorSetup.ts`, with helpers in a new `src/lib/formatting.ts`. One transaction per edit, so undo/redo works naturally and the cursor doesn't jump.
+- With a selection: wrap it in markers (`**`, `*`, `~~`). With no selection: insert the markers and put the cursor between them.
+- Toggle: if the text right around the selection already matches the markers, remove them instead. Only exact boundary matches count, so existing nesting isn't broken.
+- Underline is left out: Markdown has no syntax for it (only HTML `<u>`), and Ctrl+U is a poor key for it anyway.
+- Later: inline code, heading levels (Ctrl+1–6), blockquote, link insertion (Ctrl+K), toolbar buttons, and a "Formatting" section in the Help modal.
+- Open questions: support `_` / `__` delimiters? Skip formatting inside code blocks?
+</details>
 
 ### Tier 3 — Bigger features
-- [x] Folder sidebar (browse .md files in a directory)
-- [x] Multiple tabs
-- [x] Find & Replace (Ctrl+F)
-- [x] Print / PDF export
-- [x] Export to DOCX (via `docx` npm package)
-- [ ] Online sync via cloud storage provider (Google Drive / Dropbox / OneDrive) — see `SYNC_OPTION_A.md`
+- [ ] Image rendering for relative paths
+- [ ] Paste images from the clipboard into `assets/` (depends on image rendering)
+- [ ] Command palette (Ctrl+Shift+P)
+- [ ] Online sync via cloud storage (Google Drive first, then Dropbox / OneDrive)
+- [ ] Mobile app (iOS / Android via Tauri Mobile)
 
-### Tier 4 — Polish
-- [x] App name and branding (Pasulong MD)
-- [x] Custom icon
-- [x] About tab inside Help modal
-- [x] File association (open `.md` files from Explorer/Finder)
-- [x] Sidebar spans full height beside the tab bar
-- [x] Sidebar deduplicates already-open files (switches to existing tab instead of reopening)
-- [x] Toolbar wraps to second row at narrow widths
-- [x] Changelog (CHANGELOG.md + `npm run version:bump` script)
+<details>
+<summary>Design notes — image rendering</summary>
+
+- Goal: `![alt](./pic.png)` renders in the preview and carries through to exports.
+- Proposed modes: **auto-copy** (default; copy referenced images into an `assets/` folder next to the `.md` file), **link-only** (use paths as-is, show a placeholder if broken), **absolute** (resolve to a full local path). Chosen from a toolbar dropdown and saved in localStorage.
+- **Resolve before building:** the WebView blocks raw `file://` URLs, and the auto-copy design still ended up handing `file://` paths to the preview. Tauri's asset protocol (`convertFileSrc` plus an `assetProtocol` scope in `tauri.conf.json`) can serve local files to the WebView directly. It may remove the need for copying altogether. Prototype this first.
+- Rendering: images need async work (copying or path resolution), but marked's renderer is synchronous. Collect image paths first, resolve them all, then parse, and keep the result in `useMarkdown` state instead of `useMemo`.
+- Copying: `readFile` + `writeFile` (the fs plugin has no copy command). Name clashes get `_1`, `_2`… suffixes. Cache results so images aren't re-copied on every keystroke.
+- Exports: the HTML export copies `assets/` next to the output file, DOCX embeds the images, and TXT drops them.
+- Leave for later: drag-and-drop images, a "clean up assets" command.
+</details>
+
+<details>
+<summary>Design notes — online sync</summary>
+
+- Use existing cloud storage through its own API instead of running a backend. Start with Google Drive (Drive API v3), then add Dropbox (API v2) and OneDrive (Microsoft Graph).
+- Auth: OAuth 2.0, redirecting back to the app via a custom URI scheme (`pasulong://oauth`) or a localhost loopback. Store tokens securely (`tauri-plugin-store` or the OS keychain) and handle token refresh.
+- Make API calls from the frontend so existing JS SDKs can be reused. External hosts must be allowed in the CSP.
+- Conflicts: the providers use last-write-wins. Compare `lastModified` before saving and warn if the remote copy is newer. This is fine for one person working across devices, not for real-time collaboration.
+- Offline: cache files locally, queue writes and send them when back online, and show synced / pending / error in the status bar.
+- Phases: (1) Drive: sign in, open/save, pick a sync folder → (2) remote files in the sidebar → (3) conflict detection → (4) offline queue → (5) more providers. Phase 1 is roughly 2–3 weeks.
+- Open questions: sync per file or per folder? Mix local and cloud files? How to handle images? A privacy policy will be needed once the app touches users' cloud data.
+</details>
+
+<details>
+<summary>Design notes — mobile</summary>
+
+- Tauri Mobile reuses the Rust + React codebase. The renderer, sanitization, exports, theming and CodeMirror all carry over.
+- Must change: the split pane becomes one pane with an edit/preview toggle (split view could return on tablets). File access goes through the system document picker (via `tauri-plugin-dialog`), and the folder sidebar is replaced by recent files at first. Keyboard shortcuts give way to touch toolbars with 44pt tap targets, and saving/exporting goes through the share sheet. The status bar must stay clear of the on-screen keyboard (`visualViewport`, `env(safe-area-inset-*)`).
+- Tabs: one file at a time in v1; multiple files later via a drawer.
+- Builds: iOS requires macOS, Xcode and an Apple Developer account ($99/yr). Android works on Windows with Android Studio, Java 17+ and API 24+ ($25 one-time for Play Store). Run `rustup target add` for each target, then `npm run tauri ios init` / `android init`.
+- Phases: (1) proof of concept running in the simulator/emulator → (2) proper mobile UX → (3) store listings and mobile CI → (4) feature parity (multiple files, iCloud/folder browsing, PDF export).
+- Risks: text editing on touch screens inside a WebView, `window.print()` in iOS's WebView, strict iOS file access (test on a real device), App Store review taking 1–2 rounds.
+</details>
+
+### Shipped
+
+See [CHANGELOG.md](CHANGELOG.md) for release-by-release detail.
+
+- **Editing:** CodeMirror editor with live split preview, Find & Replace, word wrap toggle, font size controls, scroll sync
+- **Files & tabs:** native open/save dialogs, multiple tabs, rename tab (custom name feeds save/export filenames), recent files (last 10), `.md` file association, auto-save every 30s
+- **Folder sidebar:** full-height, deduplicates already-open files, auto-refreshes on disk changes, manual refresh button
+- **Preview:** syntax-highlighted code blocks, LaTeX math (KaTeX), GFM line breaks, custom preview CSS
+- **Export:** HTML (inlined CSS), DOCX, plain text, Print / PDF
+- **UI:** dark/light theme, resizable and collapsible panes, distraction-free mode (F11), toolbar wraps at narrow widths, Help modal (F1 / F2)
+- **Project:** Pasulong MD branding and icon, changelog + `npm run version:bump`, CI and draft-release workflows
 
 ## CI/CD
 
@@ -149,7 +204,7 @@ The release workflow publishes a **draft** GitHub release named `Pasulong MD vX.
 
 ## Known Limitations
 
-- Images with relative paths in `.md` files won't render
+- Images with relative paths in `.md` files won't render (planned — see Roadmap, Tier 3)
 - Files outside the home directory may be blocked by the Tauri sandbox
 
 ## License

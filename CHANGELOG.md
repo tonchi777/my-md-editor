@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-27
+
 ### Added
 - Outline tab in the sidebar — lists the document's headings; click one to jump to it in the editor (and preview)
 - Quick open (Ctrl+P) — fuzzy-search Markdown files in the sidebar folder (including subfolders) and your recent files

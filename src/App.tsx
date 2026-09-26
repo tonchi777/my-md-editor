@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import type { EditorView } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 import { openSearchPanel } from "@codemirror/search";
 import { Toolbar } from "./components/Toolbar";
 import { TabBar } from "./components/TabBar";
@@ -12,12 +12,17 @@ import { StatusBar } from "./components/StatusBar";
 import { HelpModal, type HelpTab } from "./components/HelpModal";
 import { CustomCssModal } from "./components/CustomCssModal";
 import { RenameModal } from "./components/RenameModal";
-import { FolderSidebar } from "./components/FolderSidebar";
+import { Sidebar, type SidebarTab } from "./components/Sidebar";
+import { QuickOpenModal } from "./components/QuickOpenModal";
+import { DiskChangeBanner } from "./components/DiskChangeBanner";
 import { useTheme } from "./hooks/useTheme";
 import { useMarkdown } from "./hooks/useMarkdown";
 import { useFileSystem } from "./hooks/useFileSystem";
+import { useExternalChanges, type DiskState } from "./hooks/useExternalChanges";
 import { generateHtmlExport } from "./lib/exportHtml";
 import { generateDocxExport } from "./lib/exportDocx";
+import { parseHeadings } from "./lib/outline";
+import { samePath } from "./lib/markdownFiles";
 import type { Tab } from "./types";
 
 const WELCOME = `# Welcome to Pasulong MD
@@ -37,7 +42,8 @@ A lightweight desktop Markdown editor. Start writing — the preview updates as 
 - \`Ctrl+O\` — open file
 - \`Ctrl+S\` — save, \`Ctrl+Shift+S\` — save as
 - \`Ctrl+N\` — new file in active tab, \`Ctrl+T\` — new tab, \`Ctrl+W\` — close tab
-- **Folder sidebar** — browse and open \`.md\` files from a directory
+- **Folder sidebar** — browse and open \`.md\` files from a directory; the **Outline** tab lists this document's headings
+- **Quick open** — \`Ctrl+P\` finds any file in the sidebar folder or your recent files
 - **Recent files** — clock icon in the toolbar reopens the last 10 files
 - **Auto-save** — timer icon saves automatically every 30 seconds when enabled
 
@@ -67,6 +73,7 @@ A lightweight desktop Markdown editor. Start writing — the preview updates as 
 | \`Ctrl+Tab\` | Next tab |
 | \`Ctrl+Shift+Tab\` | Previous tab |
 | \`Ctrl+F\` | Find & Replace |
+| \`Ctrl+P\` | Quick open |
 | \`F1\` | Markdown reference |
 | \`F11\` | Distraction-free mode |
 `;
@@ -87,6 +94,9 @@ export default function App() {
   const [editorVisible, setEditorVisible] = useState(true);
   const [previewVisible, setPreviewVisible] = useState(true);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("files");
+  const [folderRoot, setFolderRoot] = useState<string | null>(null);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [helpTab, setHelpTab] = useState<HelpTab | null>(null);
   const [customCssOpen, setCustomCssOpen] = useState(false);
   const [renameTabId, setRenameTabId] = useState<string | null>(null);
@@ -128,6 +138,8 @@ export default function App() {
   const fileName = currentPath ? currentPath.split(/[\\/]/).pop() ?? null : null;
 
   const html = useMarkdown(content);
+  const outlineVisible = sidebarVisible && sidebarTab === "outline";
+  const headings = useMemo(() => outlineVisible ? parseHeadings(content) : [], [content, outlineVisible]);
 
   // Refs for auto-save (avoids stale closures in interval)
   const tabsRef = useRef(tabs);
@@ -146,6 +158,42 @@ export default function App() {
   const setContent = useCallback((value: string) => {
     updateActiveTab({ content: value });
   }, [updateActiveTab]);
+
+  // ── External changes ────────────────────────────────────────────
+  // Clean tabs reload silently; tabs with unsaved edits get a Reload / Keep mine banner.
+  const handleDiskChange = useCallback((path: string, disk: DiskState) => {
+    setTabsState(s => ({
+      ...s,
+      tabs: s.tabs.map(t => {
+        if (!t.path || !samePath(t.path, path)) return t;
+        if ("deleted" in disk) {
+          // Nothing is on disk any more, so any content counts as unsaved.
+          return t.diskDeleted ? t : { ...t, savedContent: "", diskContent: undefined, diskDeleted: true };
+        }
+        const text = disk.content;
+        const resolved = { diskContent: undefined, diskDeleted: false };
+        if (text === t.savedContent) {
+          return t.diskContent !== undefined || t.diskDeleted ? { ...t, ...resolved } : t;
+        }
+        if (text === t.content) return { ...t, ...resolved, savedContent: text };
+        if (t.content === t.savedContent) return { ...t, ...resolved, content: text, savedContent: text };
+        return { ...t, diskContent: text, diskDeleted: false };
+      }),
+    }));
+  }, []);
+
+  useExternalChanges(tabs, handleDiskChange);
+
+  const handleReloadFromDisk = useCallback(() => {
+    if (activeTab.diskContent === undefined) return;
+    updateActiveTab({ content: activeTab.diskContent, savedContent: activeTab.diskContent, diskContent: undefined });
+  }, [activeTab.diskContent, updateActiveTab]);
+
+  const handleKeepMine = useCallback(() => {
+    if (activeTab.diskContent === undefined) return;
+    // Track the disk version as "saved" so the tab stays dirty until the user saves over it.
+    updateActiveTab({ savedContent: activeTab.diskContent, diskContent: undefined });
+  }, [activeTab.diskContent, updateActiveTab]);
 
   // Persist preferences
   useEffect(() => { localStorage.setItem("md-editor-word-wrap", String(wordWrap)); }, [wordWrap]);
@@ -173,9 +221,10 @@ export default function App() {
     if (!autoSave) return;
     const id = setInterval(async () => {
       const tab = tabsRef.current.find(t => t.id === activeIdRef.current);
-      if (tab?.path && tab.content !== tab.savedContent) {
+      // Never auto-save over an unresolved external change; the user decides via the banner.
+      if (tab?.path && tab.content !== tab.savedContent && tab.diskContent === undefined) {
         const ok = await saveFile(tab.content, tab.path);
-        if (ok) updateActiveTab({ savedContent: tab.content });
+        if (ok) updateActiveTab({ savedContent: tab.content, diskDeleted: false });
       }
     }, 30000);
     return () => clearInterval(id);
@@ -258,7 +307,7 @@ export default function App() {
   // ── File operations ─────────────────────────────────────────────
   const handleNew = useCallback(() => {
     if (isDirty && !window.confirm("Discard unsaved changes?")) return;
-    updateActiveTab({ content: "", savedContent: "", path: null, label: undefined });
+    updateActiveTab({ content: "", savedContent: "", path: null, label: undefined, diskContent: undefined, diskDeleted: false });
   }, [isDirty, updateActiveTab]);
 
   const openInActiveTab = useCallback((content: string, path: string) => {
@@ -288,8 +337,9 @@ export default function App() {
     }
   }, [openFilePath, openInActiveTab, addToRecent]);
 
-  const handleOpenFromSidebar = useCallback(async (path: string) => {
-    const existing = tabs.find(t => t.path === path);
+  // Opens a path from the sidebar or quick open, switching to its tab if it's already open.
+  const handleOpenPath = useCallback(async (path: string) => {
+    const existing = tabs.find(t => t.path && samePath(t.path, path));
     if (existing) {
       setTabsState(s => ({ ...s, activeId: existing.id }));
       return;
@@ -308,15 +358,37 @@ export default function App() {
       if (path) { updateActiveTab({ savedContent: content, path }); addToRecent(path); }
     } else {
       const ok = await saveFile(content, currentPath);
-      if (ok) updateActiveTab({ savedContent: content });
+      if (ok) updateActiveTab({ savedContent: content, diskContent: undefined, diskDeleted: false });
     }
   }, [content, currentPath, saveFile, saveFileAs, updateActiveTab, addToRecent, activeTab.label]);
 
   const handleSaveAs = useCallback(async () => {
     const suggested = activeTab.label ?? fileName ?? "untitled.md";
     const path = await saveFileAs(content, suggested);
-    if (path) { updateActiveTab({ savedContent: content, path }); addToRecent(path); }
+    if (path) { updateActiveTab({ savedContent: content, path, diskContent: undefined, diskDeleted: false }); addToRecent(path); }
   }, [content, saveFileAs, updateActiveTab, addToRecent, activeTab.label, fileName]);
+
+  // ── Outline ─────────────────────────────────────────────────────
+  const handleSelectHeading = useCallback((index: number) => {
+    const heading = headings[index];
+    if (!heading) return;
+    if (editorVisible && editorView) {
+      const doc = editorView.state.doc;
+      const line = doc.line(Math.min(heading.line, doc.lines));
+      editorView.dispatch({
+        selection: { anchor: line.from },
+        effects: EditorView.scrollIntoView(line.from, { y: "start", yMargin: 8 }),
+      });
+      editorView.focus();
+    }
+    // Scroll sync already moves the preview when the editor scrolls; otherwise jump it directly.
+    // Only trust the index when the preview has the same headings the outline parsed.
+    const preview = previewRef.current;
+    if (preview && previewVisible && (!scrollSync || !editorVisible)) {
+      const els = preview.querySelectorAll("h1, h2, h3, h4, h5, h6");
+      if (els.length === headings.length) els[index].scrollIntoView({ block: "start" });
+    }
+  }, [headings, editorView, editorVisible, previewVisible, scrollSync]);
 
   const handleFontSizeChange = useCallback((delta: number) => {
     setFontSize(s => Math.min(24, Math.max(10, s + delta)));
@@ -391,6 +463,8 @@ export default function App() {
       } else if (e.ctrlKey && e.key === "f") {
         e.preventDefault();
         if (editorView) openSearchPanel(editorView);
+      } else if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "p") {
+        e.preventDefault(); setQuickOpen(v => !v);
       } else if (e.key === "F1") {
         e.preventDefault(); setHelpTab(t => t ? null : "shortcuts");
       } else if (e.key === "F2") {
@@ -440,7 +514,17 @@ export default function App() {
         recentFiles={recentFiles}
       />
       <div className="app-body">
-        {sidebarVisible && <FolderSidebar onOpenFile={handleOpenFromSidebar} />}
+        {sidebarVisible && (
+          <Sidebar
+            tab={sidebarTab}
+            onTabChange={setSidebarTab}
+            rootDir={folderRoot}
+            onRootDirChange={setFolderRoot}
+            onOpenFile={handleOpenPath}
+            headings={headings}
+            onSelectHeading={handleSelectHeading}
+          />
+        )}
         <div className="app-right">
           <TabBar
             tabs={tabs}
@@ -450,6 +534,15 @@ export default function App() {
             onNewTab={handleNewTab}
             onRenameTab={handleRenameTab}
           />
+          {(activeTab.diskContent !== undefined || activeTab.diskDeleted) && (
+            <DiskChangeBanner
+              kind={activeTab.diskContent !== undefined ? "changed" : "deleted"}
+              onReload={handleReloadFromDisk}
+              onKeepMine={handleKeepMine}
+              onSave={handleSave}
+              onDismiss={() => updateActiveTab({ diskDeleted: false })}
+            />
+          )}
           <SplitPane
             leftVisible={editorVisible}
             rightVisible={previewVisible}
@@ -468,6 +561,14 @@ export default function App() {
       </div>
       <StatusBar filePath={currentPath} content={content} isDirty={isDirty} autoSave={autoSave} />
       {helpTab && <HelpModal initialTab={helpTab} onClose={() => setHelpTab(null)} />}
+      {quickOpen && (
+        <QuickOpenModal
+          rootDir={folderRoot}
+          recentFiles={recentFiles}
+          onOpen={handleOpenPath}
+          onClose={() => setQuickOpen(false)}
+        />
+      )}
       {customCssOpen && (
         <CustomCssModal
           initialCss={customCss}

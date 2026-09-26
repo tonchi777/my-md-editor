@@ -26,7 +26,11 @@ Key files an agent needs to know:
 | `src/components/Preview.tsx` | Sanitized HTML preview pane. |
 | `src/components/TabBar.tsx` | Multi-tab management UI. |
 | `src/components/SplitPane.tsx` | Drag-to-resize pane. `leftVisible`/`rightVisible` props control collapse. |
-| `src/components/FolderSidebar.tsx` | Directory browser panel. Deduplicates already-open tabs. Watches the current folder (fs `watch`) and auto-refreshes. |
+| `src/components/Sidebar.tsx` | Sidebar shell with Files / Outline tabs. Keeps FolderSidebar mounted while hidden. |
+| `src/components/FolderSidebar.tsx` | Directory browser panel. Root folder is owned by App (`folderRoot`); subfolder navigation is local. Watches the current folder (fs `watch`) and auto-refreshes. |
+| `src/components/OutlinePanel.tsx` | Heading list for the Outline tab. |
+| `src/components/QuickOpenModal.tsx` | Ctrl+P fuzzy file finder over recent files + a recursive scan of `folderRoot`. |
+| `src/components/DiskChangeBanner.tsx` | Reload / Keep mine (changed) or Save to restore (deleted) banner above the editor. |
 | `src/components/StatusBar.tsx` | Word count / char count / filename bar. |
 | `src/components/HelpModal.tsx` | F1 tabbed modal — Shortcuts, Markdown Reference, Changelog, About. |
 | `src/components/ExportMenu.tsx` | HTML / DOCX / TXT / PDF export dropdown. |
@@ -35,6 +39,10 @@ Key files an agent needs to know:
 | `src/components/RenameModal.tsx` | Rename tab modal (pencil icon on tab hover). |
 | `src/hooks/useFileSystem.ts` | All Tauri file I/O. `openFile`, `saveFile`, `saveFileAs`. |
 | `src/hooks/useTheme.ts` | Theme state. Sets `document.documentElement.dataset.theme`. |
+| `src/hooks/useExternalChanges.ts` | Watches parent folders of open files; reports new content or deletion. App's `handleDiskChange` decides reload vs. conflict. |
+| `src/lib/outline.ts` | `parseHeadings` — ATX + setext headings, skipping fenced code. |
+| `src/lib/fuzzyMatch.ts` | `fuzzyScore` subsequence scorer for quick open. |
+| `src/lib/markdownFiles.ts` | Path helpers (`joinPath`, `samePath`, `normalizePath`…) and recursive `listMarkdownFiles`. |
 | `src/hooks/useMarkdown.ts` | Renders markdown to sanitized HTML string. Memoized on content. |
 | `src/lib/markdownRenderer.ts` | Configures marked + highlight.js + KaTeX (math rendering) once at module load. |
 | `src/lib/codemirrorSetup.ts` | Returns CM6 extension array. Accepts `isDark` to swap themes. |
@@ -90,6 +98,9 @@ Things that caused problems — don't repeat them.
 Most recent first. Add a brief entry at the end of each session.
 
 ### 2026-09-27
+- Shipped the three Next-up items: external change detection (`useExternalChanges`, `Tab.diskContent` / `Tab.diskDeleted`, `DiskChangeBanner`), Outline sidebar tab, Quick open (Ctrl+P)
+- Sidebar root folder lifted into App so it survives hiding the sidebar and feeds quick open
+- Auto-save skips tabs with an unresolved disk conflict
 - Folder sidebar: manual refresh button + auto-refresh via `tauri-plugin-fs` `watch` (enabled the `watch` Cargo feature; added `fs:allow-watch` / `fs:allow-unwatch` permissions)
 - Consolidated all planning into `README.md` → Roadmap (Next up, tiers, design notes, Shipped); removed `FORMATTING_PLAN.md`, `IMAGE_RENDERING_PLAN.md`, `SYNC_OPTION_A.md`, `MOBILE_PLAN.md`
 

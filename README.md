@@ -13,6 +13,9 @@ Most Markdown editors are either web-only (no native file access) or Electron-ba
 - File association — double-click any `.md` file in Explorer to open it directly in the app
 - Multiple tabs (Ctrl+T / Ctrl+W / Ctrl+Tab)
 - Folder sidebar — browse and open `.md` files from a directory; refreshes automatically when files are added, removed, or renamed
+- Outline — sidebar tab listing the document's headings; click one to jump to it
+- Quick open (Ctrl+P) — fuzzy-search files in the sidebar folder and your recent files
+- External change detection — open files reload when changed on disk; if you have unsaved edits, choose Reload or Keep mine
 - Find & Replace (Ctrl+F)
 - Syntax highlighting in fenced code blocks (JS, TS, Python, Rust, Go, and more)
 - Dark/light theme — follows OS preference, manually overridable, persists across restarts
@@ -91,6 +94,7 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 | `Ctrl+Tab` | Next tab |
 | `Ctrl+Shift+Tab` | Previous tab |
 | `Ctrl+F` | Find & Replace |
+| `Ctrl+P` | Quick open |
 | `F1` | Help modal (Shortcuts / Markdown / Changelog / About) |
 | `F2` | Markdown reference |
 | `F11` | Toggle distraction-free mode |
@@ -100,19 +104,14 @@ The installer lands in `src-tauri/target/release/bundle/` — on Windows that's 
 This is the single plan for the project. Tiers group work by effort; **Next up** sets priority. Design notes for larger items are collapsed under each tier.
 
 ### Next up
-1. Warn when an open file changes on disk
-2. Outline panel
-3. Quick open (Ctrl+P)
+_To be decided — pick from the tiers below._
 
 ### Tier 1 — Quick wins
-- [ ] Warn when an open file changes on disk (Reload / Keep mine) — reuses the sidebar's folder watcher
 - [ ] Word count goal (set a target, show progress in status bar)
 - [ ] Smart lists — Enter continues bullets/numbers, Tab / Shift+Tab indents
 - [ ] GitHub-style callouts (`> [!NOTE]`, `> [!WARNING]`) and footnotes (`[^1]`)
 
 ### Tier 2 — Medium effort
-- [ ] Outline panel (clickable list of headings, as a sidebar tab)
-- [ ] Quick open (Ctrl+P) — fuzzy-search `.md` files in the sidebar folder, including subfolders
 - [ ] Formatting shortcuts — Ctrl+B bold, Ctrl+I italic, Ctrl+Shift+X strikethrough
 - [ ] Reopen last tabs, folder and cursor positions on launch
 - [ ] Mermaid diagrams in fenced ` ```mermaid ` blocks
@@ -177,8 +176,8 @@ This is the single plan for the project. Tiers group work by effort; **Next up**
 See [CHANGELOG.md](CHANGELOG.md) for release-by-release detail.
 
 - **Editing:** CodeMirror editor with live split preview, Find & Replace, word wrap toggle, font size controls, scroll sync
-- **Files & tabs:** native open/save dialogs, multiple tabs, rename tab (custom name feeds save/export filenames), recent files (last 10), `.md` file association, auto-save every 30s
-- **Folder sidebar:** full-height, deduplicates already-open files, auto-refreshes on disk changes, manual refresh button
+- **Files & tabs:** native open/save dialogs, multiple tabs, rename tab (custom name feeds save/export filenames), recent files (last 10), quick open (Ctrl+P), `.md` file association, auto-save every 30s, reload / conflict banner when an open file changes on disk
+- **Sidebar:** Files and Outline tabs, full-height, deduplicates already-open files, auto-refreshes on disk changes, manual refresh button, keeps its folder when hidden
 - **Preview:** syntax-highlighted code blocks, LaTeX math (KaTeX), GFM line breaks, custom preview CSS
 - **Export:** HTML (inlined CSS), DOCX, plain text, Print / PDF
 - **UI:** dark/light theme, resizable and collapsible panes, distraction-free mode (F11), toolbar wraps at narrow widths, Help modal (F1 / F2)

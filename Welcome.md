@@ -6,7 +6,10 @@ Start writing Markdown here. The preview updates as you type.
 
 - **Live split preview** with syntax-highlighted code blocks
 - **Multiple tabs** — Ctrl+T new, Ctrl+W close, Ctrl+Tab cycle
-- **Folder sidebar** — browse and open `.md` files from a directory
+- **Folder sidebar** — browse and open `.md` files from a directory; refreshes automatically
+- **Outline** — sidebar tab listing your headings; click to jump
+- **Quick open** — Ctrl+P fuzzy-finds files in the sidebar folder and recent files
+- **External change detection** — reloads files changed on disk, or asks before discarding your edits
 - **Find & Replace** — Ctrl+F
 - **File open/save** via native OS dialogs
 - **Export** to HTML, DOCX, plain text, or PDF/print
@@ -20,4 +23,4 @@ const greeting = "Hello, Pasulong MD!";
 console.log(greeting);
 ```
 
-> Tips: `Ctrl+O` open · `Ctrl+S` save · `Ctrl+T` new tab · `Ctrl+F` find · `F1` help · `F11` distraction-free
+> Tips: `Ctrl+O` open · `Ctrl+S` save · `Ctrl+T` new tab · `Ctrl+F` find · `Ctrl+P` quick open · `F1` help · `F11` distraction-free

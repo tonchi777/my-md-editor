@@ -6,8 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Outline tab in the sidebar — lists the document's headings; click one to jump to it in the editor (and preview)
+- Quick open (Ctrl+P) — fuzzy-search Markdown files in the sidebar folder (including subfolders) and your recent files
+- External change detection — open files with no unsaved edits reload automatically when changed on disk; with unsaved edits, a banner offers Reload or Keep mine; deleted files get a Save to restore option
 - Folder sidebar auto-refreshes when files are added, removed, or renamed in the open folder
 - Refresh button in the folder sidebar header for a manual reload
+
+### Changed
+- Sidebar keeps its open folder when hidden and shown again
+- Auto-save skips a file while an external-change conflict is unresolved, so it never overwrites someone else's edits
 
 ## [0.1.3] - 2026-08-07
 

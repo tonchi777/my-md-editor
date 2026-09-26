@@ -2,8 +2,11 @@ import { useState, useCallback, useEffect } from "react";
 import { FolderOpen, Folder, FileText, ChevronLeft, RefreshCw } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readDir, watch, type WatchEvent } from "@tauri-apps/plugin-fs";
+import { MD_EXT, baseName, joinPath } from "../lib/markdownFiles";
 
 interface FolderSidebarProps {
+  rootDir: string | null;
+  onRootDirChange: (dir: string) => void;
   onOpenFile: (path: string) => void;
 }
 
@@ -12,8 +15,6 @@ interface Entry {
   path: string;
   isDirectory: boolean;
 }
-
-const MD_EXT = /\.(md|markdown|txt)$/i;
 
 // Only listing changes matter: creates, removes, and renames — not reads or content edits.
 function affectsListing(event: WatchEvent): boolean {
@@ -24,12 +25,9 @@ function affectsListing(event: WatchEvent): boolean {
   return true;
 }
 
-function joinPath(dir: string, name: string): string {
-  return dir.replace(/[/\\]$/, "") + "/" + name;
-}
-
-export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
-  const [dirStack, setDirStack] = useState<string[]>([]);
+export function FolderSidebar({ rootDir: initialRoot, onRootDirChange, onOpenFile }: FolderSidebarProps) {
+  // The root folder lives in App so it survives the sidebar being hidden; subfolder navigation is local.
+  const [dirStack, setDirStack] = useState<string[]>(() => initialRoot ? [initialRoot] : []);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -59,6 +57,10 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (initialRoot) loadDir(initialRoot);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-refresh the listing when files are added, removed, or renamed on disk.
   useEffect(() => {
     if (!currentDir) return;
@@ -80,7 +82,8 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
     if (typeof selected !== "string") return;
     setDirStack([selected]);
     loadDir(selected);
-  }, [loadDir]);
+    onRootDirChange(selected);
+  }, [loadDir, onRootDirChange]);
 
   const navigateInto = useCallback((entry: Entry) => {
     setDirStack(s => [...s, entry.path]);
@@ -96,11 +99,11 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
     });
   }, [loadDir]);
 
-  const folderName = currentDir ? currentDir.split(/[\\/]/).pop() : null;
-  const rootName = rootDir ? rootDir.split(/[\\/]/).pop() : null;
+  const folderName = currentDir ? baseName(currentDir) : null;
+  const rootName = rootDir ? baseName(rootDir) : null;
 
   return (
-    <div className="sidebar">
+    <>
       <div className="sidebar-header">
         {currentDir && dirStack.length > 1 && (
           <button className="toolbar-btn sidebar-back" onClick={navigateBack} title="Back">
@@ -143,6 +146,6 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
           </button>
         ))}
       </div>
-    </div>
+    </>
   );
 }

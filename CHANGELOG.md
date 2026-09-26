@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Folder sidebar auto-refreshes when files are added, removed, or renamed in the open folder
+- Refresh button in the folder sidebar header for a manual reload
+
 ## [0.1.3] - 2026-08-07
 
 ### Added

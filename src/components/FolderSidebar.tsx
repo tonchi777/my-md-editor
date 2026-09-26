@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
-import { FolderOpen, Folder, FileText, ChevronLeft } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { FolderOpen, Folder, FileText, ChevronLeft, RefreshCw } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { readDir } from "@tauri-apps/plugin-fs";
+import { readDir, watch, type WatchEvent } from "@tauri-apps/plugin-fs";
 
 interface FolderSidebarProps {
   onOpenFile: (path: string) => void;
@@ -15,6 +15,15 @@ interface Entry {
 
 const MD_EXT = /\.(md|markdown|txt)$/i;
 
+// Only listing changes matter: creates, removes, and renames — not reads or content edits.
+function affectsListing(event: WatchEvent): boolean {
+  const t = event.type;
+  if (typeof t !== "object") return true;
+  if ("access" in t) return false;
+  if ("modify" in t) return t.modify.kind === "rename";
+  return true;
+}
+
 function joinPath(dir: string, name: string): string {
   return dir.replace(/[/\\]$/, "") + "/" + name;
 }
@@ -27,8 +36,8 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
   const currentDir = dirStack[dirStack.length - 1] ?? null;
   const rootDir = dirStack[0] ?? null;
 
-  const loadDir = useCallback(async (path: string) => {
-    setLoading(true);
+  const loadDir = useCallback(async (path: string, silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const raw = await readDir(path);
       const parsed: Entry[] = raw
@@ -49,6 +58,22 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
     }
     setLoading(false);
   }, []);
+
+  // Auto-refresh the listing when files are added, removed, or renamed on disk.
+  useEffect(() => {
+    if (!currentDir) return;
+    let unwatch: (() => void) | null = null;
+    let cancelled = false;
+    watch(currentDir, event => {
+      if (affectsListing(event)) loadDir(currentDir, true);
+    }, { delayMs: 300 })
+      .then(fn => { if (cancelled) fn(); else unwatch = fn; })
+      .catch(() => { /* watching unsupported or denied — manual refresh still works */ });
+    return () => {
+      cancelled = true;
+      unwatch?.();
+    };
+  }, [currentDir, loadDir]);
 
   const openFolder = useCallback(async () => {
     const selected = await open({ directory: true, multiple: false });
@@ -85,6 +110,11 @@ export function FolderSidebar({ onOpenFile }: FolderSidebarProps) {
         <span className="sidebar-dir-name" title={currentDir ?? undefined}>
           {folderName ?? rootName ?? "No folder"}
         </span>
+        {currentDir && (
+          <button className="toolbar-btn" onClick={() => loadDir(currentDir)} title="Refresh folder" disabled={loading}>
+            <RefreshCw size={14} />
+          </button>
+        )}
         <button className="toolbar-btn" onClick={openFolder} title="Open folder">
           <FolderOpen size={14} />
         </button>
